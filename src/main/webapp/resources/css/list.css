@@ -1,0 +1,270 @@
+@charset "UTF-8";
+
+body {
+	margin: 0 auto;
+}
+
+header {
+	height: 110px;
+}
+
+#gnb {
+	display: flex;
+	width: 100%;
+	background-color: #3c4790;
+	height: 50px;
+	margin-bottom: 50px;
+}
+
+nav {
+	width: 600px;
+	height: 50px;
+}
+
+#gnb_1 {
+	display: flex;
+	width: 1160px;
+	margin: 0 auto;
+	justify-content: space-between;
+}
+
+#gnbdiv {
+	width: 300px;
+	height: 50px;
+	color: #fff;
+	line-height: 150%;
+	text-align: center;
+}
+
+#gnb nav ul {
+	display: flex;
+	height: 50px;
+	width: 400px;
+	justify-content: space-between;
+}
+
+div#gnb nav ul li {
+	height: 100%;
+	font-size: 14px;
+	color: #fff;
+}
+
+div#gnb a {
+	color: #fff;
+	line-height: 350%;
+}
+
+#main, #header {
+	width: 1160px;
+	margin: 0 auto;
+}
+
+div#header {
+	display: flex;
+	justify-content: space-between;
+	margin: 0 auto;
+}
+
+#logo img {
+	width: 110px;
+	height: 100px;
+}
+
+#logo {
+	position: relative;
+	top: 2px;
+	width: 270px;
+}
+
+#cheader {
+	position: relative;
+	top: 30px;
+	width: 460px;
+	height: 46px;
+}
+
+#utile {
+	width: 270px;
+	height: 30px;
+	line-height: 300%;
+}
+
+#utile ul {
+	display: flex;
+	justify-content: flex-end;
+}
+
+#utile ul li {
+	float: left;
+	margin-left: 5px;
+}
+
+#utile ul li::before {
+	padding-right: 5px;
+	content: " |";
+}
+
+#utile ul li:first-child::before {
+	content: "";
+}
+
+table {
+	width: 840px;
+	margin: 0 auto;
+	text-align: center;
+	vertical-align: middle;
+}
+
+td#title {
+	text-align: left;
+}
+
+td#title a {
+	text-decoration: none;
+	color: #000;
+}
+
+td#title a:hover {
+	text-decoration: underline;
+}
+
+th {
+	height: 37px;
+	border-width: 2px 0 1px;
+	border-style: solid;
+	border-color: #3c4790;
+	vertical-align: middle;
+	text-align: center;
+	color: #333;
+	font-family: Dotum, '돋움';
+}
+
+td {
+	height: 37px;
+	border-bottom: 1px solid #eee;
+	vertical-align: middle;
+	text-align: center;
+	color: #333;
+	font-family: Dotum, '돋움';
+}
+
+td#bno, td#title, td#writer, td#viewcnt, td#regdate {
+	height: 26px;
+	padding: 1px;
+}
+
+td#title {
+	width: 500px;
+}
+
+td#writer {
+	width: 100px;
+}
+
+td#viewcnt, td#regdate, td#cnt, td#bno {
+	width: 60px;
+	font-size: 11px;
+}
+
+input#write-btn {
+	background-color: rgb(74, 87, 168);
+	width: 85px;
+	height: 35px;
+	cursor: pointer;
+	color: #fff;
+	position: relative;
+	margin-top: 10px;
+	left: 755px;
+}
+
+div#write, div#paging, div#search {
+	margin: 0 auto;
+	width: 840px;
+}
+
+div#write {
+	border-top: 2px solid #3c4790;
+}
+
+div#paging {
+	height: 20px;
+	margin-top: 18px;
+	text-align: center;
+}
+
+div#paging a {
+	display: inline-block;
+	margin-left: 9px;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+div#search {
+	height: 60px;
+	text-align: center;
+}
+
+div#search select {
+	width: 109px;
+	height: 30px;
+	padding-left: 8px;
+	line-height: 30px;
+	margin: 3px;
+	background-color: #fff;
+	border: 3px solid #3c4790;
+	font-size: 14px;
+	color: #3c4790;
+}
+
+input#keyword {
+	width: 318px;
+	height: 22px;
+	margin: 3px;
+	background-color: #fff;
+	border: 3px solid #3c4790;
+}
+
+input#search-btn {
+	width: 37px;
+	height: 30px;
+	margin: 3px;
+	background-color: #3c4790;
+	color: #fff;
+}
+
+footer {
+	margin-top: 100px;
+	height: 100px;
+}
+
+#footerwr {
+	width: 100%;
+}
+
+#footerutile {
+	margin: 0 auto;
+	width: 100%;
+	height: 20px;
+}
+
+#footerutile ul {
+	display: flex;
+	justify-content: center;
+}
+
+#footerutile ul li {
+	float: left;
+	margin-left: 5px;
+	text-align: center;
+}
+
+#footerutile ul li::before {
+	padding-right: 5px;
+	content: " |";
+}
+
+#footerutile ul li:first-child::before {
+	content: "";
+	padding-left: 0px;
+	padding-right: 0px;
+}

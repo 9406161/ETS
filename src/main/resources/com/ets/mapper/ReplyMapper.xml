@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.ets.mapper.ReplyMapper">
+  	<select id="list" parameterType="map" resultType="com.ets.domain.ReplyVO">
+		select rno,bno,replytext,replyer,regdate,updatedate
+		    	from (
+					select @rownum:=@rownum+1 as rownum,b.*
+					from (select @rownum:=0)as tmp, etb_reply as b
+					where bno=#{bno}
+					order by rno desc
+					)as boardList
+				    <![CDATA[ 
+				    where rownum > (#{cri.pageNum}-1)*#{cri.amount} 
+				    and rownum <= #{cri.pageNum}*#{cri.amount}
+				    ]]> 
+  	</select>
+  
+ 	<select id="getCountByBno" resultType="int">
+		select count(rno) from etb_reply where bno=#{bno}
+ 	</select>
+  	
+  	<insert id="create">
+  		insert into etb_reply(bno,replytext,replyer) values(#{bno},#{replytext},#{replyer})
+  	</insert>
+  	
+  	<update id="update">
+  		update etb_reply set replytext=#{replytext},updatedate=now() where rno =#{rno}
+  	</update>
+  
+   	<delete id="delete">
+  		delete from etb_reply where rno=#{rno}
+  	</delete>
+  </mapper>

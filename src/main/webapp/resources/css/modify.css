@@ -1,0 +1,117 @@
+@charset "UTF-8";
+header{
+		height: 110px;
+	}
+	
+	header{
+		background-color:#3c4790;
+		width: 100%;
+		height: 110px;
+		margin: 0 auto;
+	}
+	div#header{
+		width:1160px;
+		display: flex;
+		justify-content: space-between;	
+		margin: 0 auto;
+	}
+	
+	#logo img{
+		width: 110px;
+		height: 100px;
+	}
+	#logo{
+		position : relative;
+		top:2px;
+		width: 270px;
+	}
+
+	#utile{
+		width: 270px;
+		height: 30px;
+		line-height: 300%;
+	}
+	#utile ul{
+		display: flex;
+		justify-content: flex-end;
+		
+	}
+	#utile ul li{
+		color:#fff;
+		float: left;
+		margin-left:5px; 
+	}
+	#utile ul li a{
+		color:#fff;		
+	}
+	#utile ul li::before{
+		padding-right:5px;
+		content: "|" ;
+	}
+	#utile ul li:first-child::before{
+		content: "";
+	}
+	
+	
+	
+	#formmember{
+		margin-top: 100px;
+	}
+	div#form{
+	}
+    fieldset{
+		margin: 0 auto;
+		width: 352px;
+	}
+	fieldset label{
+		line-height: 150%;
+	}
+
+
+    #userid,#phone,#email,#username,#teamname{
+        width: 350px;
+        height: 20px;
+        font: bold;
+        border-radius: 6px;
+        padding: 15px 10px;
+    }
+    #pw,#repw{
+    	width:49%;
+    	float: left;
+    }
+    #userpw,#re_userpw{
+    	width: 160px;
+    }
+    #pw{
+    	margin-right: 1%
+    }
+    #repw{
+    	margin-left: 1%
+    }
+    #userpw, #re_userpw{
+        height: 20px;
+        font: bold;
+        border-radius: 6px;
+        padding: 15px 10px;
+    }
+    #submit{
+     	border-radius: 6px;
+        width: 374px;
+        height: 54px;
+        background-color: #3540a5;
+        color: aliceblue;
+    }
+    a#del{
+   		display:block;	
+     	border-radius: 6px;
+        width: 374px;
+        height: 54px;
+        background-color: #ccc;
+        color: #000;
+        border: 1px solid #000;
+        text-align: center;
+        line-height: 450%;
+    }
+    .divwr{
+    	display: flex;
+    }

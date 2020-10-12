@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ets.mapper.BoardMapper">
+
+<sql id="search">
+	<if test="type!=null">
+		<if test="type=='T'.toString()">
+			where title like CONCAT('%',#{keyword},'%')
+		</if>
+		<if test="type=='C'.toString()">
+			where content like CONCAT('%',#{keyword},'%')
+		</if>
+		<if test="type=='W'.toString()">
+			where writer like CONCAT('%',#{keyword},'%')
+		</if>
+		<if test="type=='TC'.toString()">
+			where title like CONCAT('%',#{keyword},'%')
+			or content like CONCAT('%',#{keyword},'%')
+		</if>
+		<if test="type=='TCW'.toString()">
+			where title like CONCAT('%',#{keyword},'%')
+			or content like CONCAT('%',#{keyword},'%')
+			or writer like CONCAT('%',#{keyword},'%')
+		</if>
+	</if>
+</sql>
+
+
+
+
+<insert id="insert">
+	<selectKey keyProperty="bno" order="BEFORE" resultType="int">
+		select max(bno)+1 as bno from etb_board
+	</selectKey>
+	insert into etb_board(title, content, writer) values(#{title},#{content},#{writer})
+</insert>
+
+<!-- <select id="list" resultType="com.ets.domain.BoardVO">
+	select bno,title,writer,regdate,viewcnt from etb_board order by bno desc
+</select> -->
+
+<select id="read" resultType="com.ets.domain.BoardVO">
+	select * from etb_board where bno = #{bno}
+</select>
+
+<update id="update" parameterType="com.ets.domain.BoardVO">
+	update etb_board set title = #{title},content=#{content} where bno=#{bno}
+</update>
+	
+<delete id="delete">
+	delete from etb_board where bno=#{bno}
+</delete>
+
+<select id="listAll" resultType="com.ets.domain.BoardVO">
+	<![CDATA[ select * from etb_board where bno > 0 order by bno desc, regdate desc]]>
+</select>
+
+<select id="listPage" resultType="com.ets.domain.BoardVO">
+	select * from (
+	select @rownum:=@rownum+1 as rownum,b.*
+	from (select @rownum:=0)as tmp, etb_board as b
+	<include refid="search"></include>
+	order by bno desc)
+	as boardList
+	    <![CDATA[ 
+	    where rownum > (#{pageNum}-1)*#{amount} 
+	    and rownum <= #{pageNum}*#{amount}
+	    ]]>
+</select>
+
+<select id="getToTalCount" resultType="int">
+	select count(*) from etb_board
+	<include refid="search"></include>
+</select>
+
+<update id="updateCnt">
+	update etb_board SET viewcnt = viewcnt +1 where bno=#{bno}
+</update>
+<select id="cntreply" resultType="int">
+	select count(*) from etb_reply where bno=#{bno}
+</select>
+	
+	
+</mapper>
