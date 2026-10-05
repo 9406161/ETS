@@ -482,6 +482,27 @@ button.score:hover,button.vs:hover{outline:1px solid var(--pitch)}
   .sharebox{grid-template-columns:minmax(0,1fr)}
 }
 .lgcard .fcol{display:none}
+.pill.big{background:var(--red);color:#fff;margin-right:4px}
+.cheer{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;color:var(--ink)}
+.cheer .num{font-weight:500;color:var(--muted)}
+.cheer.done{border-color:var(--pitch);color:var(--pitch)}
+.cheer.dark{background:transparent;border-color:rgba(255,255,255,.35);color:var(--stage-ink)}
+.cheer.dark .num{color:var(--stage-muted)}
+.cheer.dark.done{border-color:var(--gold);color:var(--gold)}
+.mside{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.stat.goal{border-left:4px solid var(--pitch)}
+.stat.goal.done{border-left-color:var(--gold)}
+.stat.goal.out{border-left-color:var(--line)}
+.gx{font-size:17px!important}
+.tc-r b.go{color:var(--pitch);font-weight:700}
+.tc-r b.ok{color:var(--gold)}
+.host b{color:var(--pitch)}
+.hostb{display:inline-block;font-size:10.5px;font-weight:700;background:var(--pitch);color:var(--pitch-ink);border-radius:3px;padding:0 5px;margin-left:3px;vertical-align:1px}
+.cheer{white-space:nowrap}
+.tgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tgrid .stat.wide{grid-column:auto}
+@media (max-width:800px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.cheer.dark{padding:5px 10px;font-size:12px}}
 </style>
 
 <header class="top">
@@ -512,7 +533,7 @@ button.score:hover,button.vs:hover{outline:1px solid var(--pitch)}
    지금은 예시 데이터를 브라우저(localStorage)에 저장. 실서비스에서는
    load/save와 syncResults만 Firebase + 협회 데이터 연동으로 바꾸면 됨.
    ===================================================================== */
-const KEY = "ets-demo-v10";
+const KEY = "ets-demo-v11";
 const DAY = 864e5;
 const RULE = {
   stage:{K5:1,K6:2,K7:7},   // 전국 무대 칸 배분: K5 정상 1, K6 정상 2, K7 승격 7
@@ -571,14 +592,15 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imu
 
 function seed(){
   const now=Date.now(), H=36e5, R=rng(20261006);
-  const regions=REGIONS.map(([id,name,open,d])=>({id,name,open:!!open,districts:d.split(" ")}));
+  const HOSTS={ulsan:"ET",busan:"해운주장",gyeongnam:"통영주장"};
+  const regions=REGIONS.map(([id,name,open,d])=>({id,name,open:!!open,districts:d.split(" "),host:HOSTS[id]||""}));
   const leagues=LEAGUES.map(([id,regionId,div,area])=>{ const rn=regions.find(r=>r.id===regionId).name;
     return {id,regionId,div,area:area===rn?"":area,name:area===rn?`${rn} ${div}`:`${rn} ${div} ${area}`}; });
   const teams=[]; let n=0;
   LEAGUES.forEach(([lid,rid,,,names])=>names.forEach((name,i)=>{
     const short = name==="DT"?"DT":name.replace(/\s|FC|유나이티드/g,"").slice(0,2);
     teams.push({id:"t"+(++n),name,short,color:COLORS[n%COLORS.length],regionId:rid,leagueId:lid,str:3-i,
-      slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*DAY,adMode:"team",sponsor:null,reports:[],hidden:false});
+      slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*DAY,adMode:"team",sponsor:null,reports:[],hidden:false,cheers:Math.round(20+R()*180+(3-i)*40),cheerLog:{}});
   }));
   const T=name=>teams.find(t=>t.name===name);
   const promo={
@@ -651,7 +673,7 @@ function seed(){
     P("gyeongnam","","경남 더비 열렸네요","양산·김해·창원·진주 모여라","눈팅러",40*DAY,140,11,0,[["통영주장","ㅎㅇ",40*DAY-H]]),
     P("gyeongnam","질문","창원 원정 교통편 질문","주차 가능한가요","통영주장",4*DAY,35,0,0,[])
   ];
-  const s={v:10,modLog:[],follows:{m1:[]},homeRegion:"ulsan",me:"u0",nextPostId:1,regions,leagues,teams,matches,seasons,honors,users,posts:[]};
+  const s={v:11,modLog:[],follows:{m1:[]},homeRegion:"ulsan",me:"u0",nextPostId:1,regions,leagues,teams,matches,seasons,honors,users,posts:[]};
   posts.forEach(p=>{p.id=s.nextPostId++; s.posts.push(p);});
   // 5라운드 결과 글, 6라운드 일정 글
   matches.filter(m=>m.round===5).forEach(m=>resultPost(s,m,new Date(m.date).getTime()+20*H));
@@ -719,7 +741,7 @@ function roundPost(s,rid,round,at){
 
 const DB = {
   s:null,
-  load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const x=JSON.parse(raw); if(x&&x.v===10){ this.s=x; return; } } }catch(e){} this.s=seed(); },
+  load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const x=JSON.parse(raw); if(x&&x.v===11){ this.s=x; return; } } }catch(e){} this.s=seed(); },
   save(){ try{ localStorage.setItem(KEY,JSON.stringify(this.s)); return true; }catch(e){ toast("브라우저 저장 공간이 가득 찼습니다. 이미지를 더 작은 것으로 바꿔 주세요."); return false; } },
   reset(){ this.s=seed(); this.save(); },
   me(){ return this.s.users.find(u=>u.id===this.s.me); },
@@ -739,6 +761,25 @@ const DB = {
   /* 최근 n경기 승무패 (오래된 → 최근) */
   form(teamId,season,n){ return this.s.matches.filter(m=>m.season===season&&m.status==="final"&&(m.homeId===teamId||m.awayId===teamId))
     .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,n||5).reverse().map(m=>{ const my=m.homeId===teamId?m.hs:m.as, ot=m.homeId===teamId?m.as:m.hs; return my>ot?"W":my<ot?"L":"D"; }); },
+  /* 목표까지 거리: 1위면 2위와의 차이, 아니면 1위와의 차이. 남은 경기로 뒤집을 수 있는지까지 */
+  chase(teamId,season){
+    const t=this.team(teamId), L=this.league(t.leagueId), st=this.standings(L.id,season), i=st.findIndex(x=>x.team.id===teamId);
+    const left=id=>this.s.matches.filter(m=>m.season===season&&m.status!=="final"&&(m.homeId===id||m.awayId===id)).length;
+    const goal=L.div==="K5"?"우승":"우승·승격", me=st[i], my=left(teamId);
+    if(!me||!me.p) return null;
+    if(i===0){ const sec=st[1], gap=me.pts-(sec?sec.pts:0), sl=sec?left(sec.team.id):0;
+      return gap>sl*3?{done:true,text:`${goal} 확정`}:{lead:true,text:`2위와 승점 ${gap}점 차 · 남은 경기 ${my}`,goal}; }
+    const gap=st[0].pts-me.pts;
+    return gap>my*3?{out:true,text:`1위와 ${gap}점 차 · 남은 경기로는 역전 어려움`}:{text:`${goal}까지 승점 ${gap}점 차 · 남은 경기 ${my}`,goal,gap};
+  },
+  /* 빅매치: 경기 직전 순위 기준 1·2위 맞대결, 또는 상위 3팀끼리 승점 1점 이내 */
+  bigMatch(m){
+    if(m.round<2) return "";
+    const st=this.standings(m.leagueId,m.season,m.round-1), a=st.findIndex(x=>x.team.id===m.homeId), b=st.findIndex(x=>x.team.id===m.awayId);
+    if(Math.max(a,b)===1&&Math.min(a,b)===0) return "선두 맞대결";
+    if(a<3&&b<3&&Math.abs(st[a].pts-st[b].pts)<=1) return "순위 경쟁";
+    return "";
+  },
   votes(m){ const v={...(m.seedVotes||{H:0,D:0,A:0})}; Object.values(m.votes||{}).forEach(k=>v[k]++); v.total=v.H+v.D+v.A; v.mine=(m.votes||{})[this.s.me]; return v; },
   /* 리그 1위(우승·승격 후보) 목록. 다른 리그끼리 비교할 때는 경기당 승점 → 득실 → 다득점 */
   leaders(div,season,rid){
@@ -810,6 +851,9 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; cle
 const TIER = r=> r===1?1 : r<=3?2 : r<=6?3 : 4;
 const dot = t=>`<span class="dot" style="background:${t.color}"></span>`;
 const dv = d=>`<span class="dv dv-${d}">${d}</span>`;
+const today=()=>new Date().toISOString().slice(0,10);
+const cheerBtn=(t,dark)=>{ const done=(t.cheerLog||{})[DB.me().id]===today();
+  return `<button class="cheer ${dark?"dark":""} ${done?"done":""}" data-cheer="${t.id}" ${done?'aria-pressed="true"':""}>${done?"응원함":"응원하기"} <span class="num">${(t.cheers||0).toLocaleString("ko-KR")}</span></button>`; };
 const formHTML = f=>f.length?`<span class="fg" aria-label="최근 ${f.length}경기 ${f.map(r=>r==="W"?"승":r==="D"?"무":"패").join(" ")}">${f.map(r=>`<i class="f-${r}">${r==="W"?"승":r==="D"?"무":"패"}</i>`).join("")}</span>`:`<span class="hint">-</span>`;
 const sv = d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 const ICON = {
@@ -894,7 +938,7 @@ function upcoming(rid,limit){
 function fixtureLi(m){
   const L=DB.league(m.leagueId), T=id=>DB.team(id), fin=m.status==="final";
   return `<li><span class="num c-muted">${esc(md(m.date))}</span>
-    <span>${dv(L.div)} <button class="tlink" data-team="${m.homeId}">${esc(T(m.homeId).name)}</button>${fin?`<button class="score" data-match="${m.id}" aria-label="경기 상세">${m.hs} : ${m.as}</button>`:`<button class="vs" data-match="${m.id}" aria-label="경기 상세·승부 예측">vs</button>`}<button class="tlink" data-team="${m.awayId}">${esc(T(m.awayId).name)}</button>
+    <span>${DB.bigMatch(m)?`<span class="pill big">빅매치</span>`:""}${dv(L.div)} <button class="tlink" data-team="${m.homeId}">${esc(T(m.homeId).name)}</button>${fin?`<button class="score" data-match="${m.id}" aria-label="경기 상세">${m.hs} : ${m.as}</button>`:`<button class="vs" data-match="${m.id}" aria-label="경기 상세·승부 예측">vs</button>`}<button class="tlink" data-team="${m.awayId}">${esc(T(m.awayId).name)}</button>
       <span class="hint">· ${L.area?esc(L.area)+" ":""}${m.round}R</span></span>
     <span class="actions"><button class="btn sm" data-match="${m.id}">${fin?"기록":"예측"}</button></span></li>`;
 }
@@ -915,7 +959,8 @@ function teamCard(t){
     <span class="tc-h"><b>${esc(t.name)}</b>${dv(L.div)}<span class="hint">${esc(L.name)} ${row&&row.p?i+1+"위":""}</span></span>
     <span class="tc-r"><span><span class="lab">다음</span>${next?`${esc(md(next.date))} vs ${esc(opp(next))}`:"남은 경기 없음"}</span>
       <span><span class="lab">지난</span>${last?`${res(last)} vs ${esc(opp(last))}`:"-"}</span>
-      <span><span class="lab">흐름</span>${formHTML(DB.form(t.id,live.id))}</span></span></button>`;
+      <span><span class="lab">흐름</span>${formHTML(DB.form(t.id,live.id))}</span>
+      ${(()=>{ const c=DB.chase(t.id,live.id); return c?`<span><span class="lab">목표</span><b class="${c.done?"ok":c.out?"":"go"}">${esc(c.text)}</b></span>`:""; })()}</span></button>`;
 }
 function homeView(){
   const hall=DB.hallSeason(), r=DB.region(DB.s.homeRegion);
@@ -967,9 +1012,9 @@ function postRows(list){
   const teamOf=p=>{ const u=DB.user(p.author); return u&&u.teamId?DB.team(u.teamId):null; };
   const tr=p=>{ const t=teamOf(p); return `<tr><td class="num c-muted">${p.id}</td>
     <td class="t">${headPill(p)}<button data-post="${p.id}">${esc(p.title)}</button>${p.comments.length?` <span class="cmt num">[${p.comments.length}]</span>`:""}</td>
-    <td>${esc(p.author)}${t?` <span class="head">${esc(t.short)}</span>`:""}</td><td class="num c-muted">${when(p.createdAt)}</td><td class="num c-muted">${p.views}</td><td class="num">${p.up}</td></tr>`; };
+    <td>${esc(p.author)}${DB.region(p.board)&&DB.region(p.board).host===p.author?` <span class="hostb">지기</span>`:t?` <span class="head">${esc(t.short)}</span>`:""}</td><td class="num c-muted">${when(p.createdAt)}</td><td class="num c-muted">${p.views}</td><td class="num">${p.up}</td></tr>`; };
   const li=p=>{ const t=teamOf(p); return `<li><button data-post="${p.id}"><div class="tt">${headPill(p)}${esc(p.title)}${p.comments.length?` <span class="cmt num">[${p.comments.length}]</span>`:""}</div>
-      <div class="mm"><span>${esc(p.author)}${t?` · ${esc(t.short)}`:""}</span><span class="num">${when(p.createdAt)}</span><span>조회 <span class="num">${p.views}</span></span><span>추천 <span class="num">${p.up}</span></span></div></button></li>`; };
+      <div class="mm"><span>${esc(p.author)}${DB.region(p.board)&&DB.region(p.board).host===p.author?` <span class="hostb">지기</span>`:t?` · ${esc(t.short)}`:""}</span><span class="num">${when(p.createdAt)}</span><span>조회 <span class="num">${p.views}</span></span><span>추천 <span class="num">${p.up}</span></span></div></button></li>`; };
   const empty=ui.q?"검색 결과가 없습니다":"아직 글이 없습니다. 첫 글을 써 보세요.";
   return `<div class="board"><table><thead><tr><th>번호</th><th>제목</th><th>글쓴이</th><th>작성일</th><th>조회</th><th>추천</th></tr></thead>
       <tbody>${rows.map(tr).join("")||`<tr><td colspan="6" class="empty">${empty}</td></tr>`}</tbody></table>
@@ -999,7 +1044,7 @@ function galleryView(){
     if(ui.q){ const q=ui.q.toLowerCase(); list=list.filter(p=>(p.title+" "+p.body+" "+p.author).toLowerCase().includes(q)); }
     body=postRows(list.sort((a,b)=>b.id-a.id)); }
   return `<nav class="crumb" aria-label="위치"><button data-go="home">전국 무대</button><span aria-hidden="true">›</span><b>${esc(r.name)} 더비</b></nav>
-    <div class="sechead"><h2 class="sec">${esc(r.name)} 더비</h2><span class="sub">${DB.leaguesIn(r.id).length}개 리그 · ${DB.teamsIn(r.id).length}팀${r.id!==DB.s.homeRegion?" · 다른 지역 둘러보는 중":""}</span>
+    <div class="sechead"><h2 class="sec">${esc(r.name)} 더비</h2><span class="sub">${DB.leaguesIn(r.id).length}개 리그 · ${DB.teamsIn(r.id).length}팀${r.id!==DB.s.homeRegion?" · 다른 지역 둘러보는 중":""}${r.host?` · <span class="host">더비 지기 <b>${esc(r.host)}</b></span>`:""}</span>
       <div class="right">${regionChips(r.id)}</div></div>
     ${top.length?`<div class="rhall">${hallHTML(top,x=>`${hall.id} ${x.tag}`)}</div>`:""}
     <div class="boardbar gtabs"><div class="seg">${tabs.map(([k,l])=>`<button data-gtab="${k}" aria-pressed="${ui.gtab===k}">${l}</button>`).join("")}</div>
@@ -1083,12 +1128,13 @@ function matchView(){
   const lab={H:`${H.short} 승`,D:"무승부",A:`${A.short} 승`};
   const h2h=DB.s.matches.filter(x=>x.id!==m.id&&((x.homeId===H.id&&x.awayId===A.id)||(x.homeId===A.id&&x.awayId===H.id))).sort((a,b)=>a.date.localeCompare(b.date));
   const post=DB.s.posts.find(p=>p.matchId===m.id);
-  const side=t=>`<button class="mteam" data-team="${t.id}" style="--tc:${t.color}"><span class="crest sm">${esc(t.short)}</span><b>${esc(t.name)}</b><span class="hint">${rk(t)}</span></button>`;
+  const side=t=>`<div class="mside"><button class="mteam" data-team="${t.id}" style="--tc:${t.color}"><span class="crest sm">${esc(t.short)}</span><b>${esc(t.name)}</b><span class="hint">${rk(t)}</span></button>${cheerBtn(t,true)}</div>`;
   return `<nav class="crumb" aria-label="위치"><button data-region="${L.regionId}" data-gt="league" data-lg="${L.id}">${esc(L.name)}</button><span aria-hidden="true">›</span><b>${m.round}라운드</b></nav>
     <section class="mhead">
       ${side(H)}
       <div class="mcenter">${fin?`<span class="mscore num">${m.hs} : ${m.as}</span><span class="official">협회 공식 기록</span>`:`<span class="mwhen num">${esc(md(m.date))}</span><span class="hint">경기 예정</span>`}
-        <span class="hint">${dv(L.div)}${esc(L.name)} · ${m.round}R · ${esc(m.date)}</span></div>
+        <span class="hint">${dv(L.div)}${esc(L.name)} · ${m.round}R · ${esc(m.date)}</span>
+        ${DB.bigMatch(m)?`<span class="pill big">빅매치 · ${DB.bigMatch(m)}</span>`:""}</div>
       ${side(A)}
     </section>
     <section class="panel"><div class="sechead"><h2 class="sec small">${fin?"팬 예측 결과":"누가 이길까요?"}</h2><span class="sub num">${v.total}명 참여${fin&&out?` · 적중 ${pct(out)}%`:""}</span></div>
@@ -1152,7 +1198,8 @@ function postView(){
   <article class="post">
     <header><h1>${headPill(p)}${esc(p.title)}</h1>
       <div class="meta"><span><b>${esc(p.author)}</b>${team?` · <button class="tlink" data-team="${team.id}">${esc(team.name)}</button>`:""}</span><span class="num">${new Date(p.createdAt).toLocaleString("ko-KR")}</span><span>조회 <span class="num">${p.views}</span></span><span>댓글 <span class="num">${p.comments.length}</span></span></div></header>
-    ${m?`<div class="matchinfo" style="margin-top:14px">${dv(DB.league(m.leagueId).div)}<button class="tlink" data-team="${m.homeId}"><b>${esc(DB.team(m.homeId).name)}</b></button><span class="score">${m.hs} : ${m.as}</span><button class="tlink" data-team="${m.awayId}"><b>${esc(DB.team(m.awayId).name)}</b></button><span class="official">협회 공식 기록</span></div>`:""}
+    ${m?`<div class="matchinfo" style="margin-top:14px">${dv(DB.league(m.leagueId).div)}<button class="tlink" data-team="${m.homeId}"><b>${esc(DB.team(m.homeId).name)}</b></button><span class="score">${m.hs} : ${m.as}</span><button class="tlink" data-team="${m.awayId}"><b>${esc(DB.team(m.awayId).name)}</b></button><span class="official">협회 공식 기록</span>
+      ${m.hs!==m.as?`<button class="btn sm" data-act="sharefor" data-tid="${m.hs>m.as?m.homeId:m.awayId}">${esc(DB.team(m.hs>m.as?m.homeId:m.awayId).short)} 순위 카드 만들기</button>`:""}</div>`:""}
     <div class="body">${esc(p.body)||'<span class="hint">(내용 없음)</span>'}</div>
     <div class="vote"><button class="up" data-vote="up" ${voted?"disabled":""}><b>${p.up}</b>추천</button><button class="down" data-vote="down" ${voted?"disabled":""}><b>${p.down}</b>비추</button></div>
     <div class="comments"><ul>${p.comments.map(c=>`<li><span class="who2">${esc(c.author)}</span><span class="txt">${esc(c.body)}</span><time class="num">${when(c.at)}</time></li>`).join("")}</ul>
@@ -1188,7 +1235,7 @@ function teamView(){
         ${t.slogan?`<p class="slg">${esc(t.slogan)}</p>`:""}</div>
       ${me.role==="admin"||me.teamId===t.id?`<button class="btn" data-act="editteam">팀 정보·공간 수정</button>`
         :`<button class="btn ${(DB.s.follows[me.id]||[]).includes(t.id)?"pri":""}" data-follow="${t.id}">${(DB.s.follows[me.id]||[]).includes(t.id)?"★ 관심 팀":"☆ 관심 팀 추가"}</button>`}
-      <button class="btn" data-act="shareimg">순위 카드 만들기</button></div>
+      ${cheerBtn(t)}<button class="btn" data-act="shareimg">순위 카드 만들기</button></div>
     ${ui.shareImg?`<div class="sharebox"><img src="${ui.shareImg}" alt="${esc(t.name)} 순위 카드">
       <div class="stack" style="gap:8px"><b>밴드·카톡에 올릴 순위 카드</b><span class="hint">휴대폰은 이미지를 길게 눌러 저장, PC는 우클릭 → 이미지 저장. 팀 단톡방이나 밴드에 바로 올리세요.</span>
       ${t.adMode==="sponsor"&&t.sponsor&&t.sponsor.status==="approved"?`<span class="hint">스폰서 이름이 카드에 함께 들어갑니다. 스폰서에게도 노출 효과가 생깁니다.</span>`:""}
@@ -1196,6 +1243,7 @@ function teamView(){
     <div class="tgrid">
       <div class="stat"><span class="lab">${esc(live.id)} 리그 순위</span><b class="num">${row&&row.p?i+1+"위":"-"}</b><span class="hint">${esc(L.name)} ${st.length}팀 중</span></div>
       <div class="stat"><span class="lab">성적</span><b class="num">${row?row.pts:0}점</b><span class="hint">${row?`${row.w}승 ${row.d}무 ${row.l}패 · 득실 ${fmtD(row.gf-row.ga)}`:""}</span><span style="margin-top:4px">${formHTML(DB.form(t.id,live.id))}</span></div>
+      ${(()=>{ const c=DB.chase(t.id,live.id); return c?`<div class="stat goal ${c.done?"done":c.out?"out":c.lead?"lead":""}"><span class="lab">목표</span><b class="gx">${esc(c.text)}</b></div>`:""; })()}
       <div class="stat wide"><span class="lab">다음 경기</span>${next?`<b class="nx">${esc(md(next.date))} vs ${esc(DB.team(next.homeId===t.id?next.awayId:next.homeId).name)}</b><span class="hint">${next.homeId===t.id?"홈":"원정"} · ${next.round}라운드</span>`:`<b class="nx">남은 경기 없음</b>`}</div>
     </div>
     <div class="cols"><section class="stack">
@@ -1316,12 +1364,15 @@ function keepForm(){ return [...document.querySelectorAll("#sform input[id],#sfo
 function restoreForm(k){ k.forEach(([id,v])=>{ const x=document.getElementById(id); if(!x) return; if(x.type==="checkbox") x.checked=v; else x.value=v; }); }
 function listBack(){ go("gallery",{region:ui.board,gtab:"posts"}); }
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-post],[data-gtab],[data-page],[data-act],[data-vote],[data-region],[data-team],[data-league],[data-div],[data-admode],[data-sp],[data-mod],[data-follow],[data-match],[data-pick]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-post],[data-gtab],[data-page],[data-act],[data-vote],[data-region],[data-team],[data-league],[data-div],[data-admode],[data-sp],[data-mod],[data-follow],[data-match],[data-pick],[data-cheer]"); if(!el) return;
   const d=el.dataset, me=DB.me();
   if(d.admode){ const keep=keepForm(); ui.adMode=d.admode; ui.draftImg=null; render(); restoreForm(keep); return; }
   if(d.sp){ const t=DB.team(d.tid); if(d.sp==="approve"){ t.sponsor.status="approved"; t.sponsor.note=""; toast(`${t.sponsor.name} 광고를 승인했습니다. ${t.name} 공간에 바로 게시됩니다`); DB.s.modLog.push({at:Date.now(),text:`${t.name} 스폰서 '${t.sponsor.name}' 사전 검수 승인`}); }
     else { t.sponsor.status="rejected"; t.sponsor.note=$("#rej-"+t.id).value; toast(`반려했습니다 (${t.sponsor.note}). 팀 공간에는 팀 홍보가 계속 보입니다`); DB.s.modLog.push({at:Date.now(),text:`${t.name} 스폰서 '${t.sponsor.name}' 반려: ${t.sponsor.note}`}); }
     DB.save(); render(); return; }
+  if(d.cheer){ const t=DB.team(d.cheer); t.cheerLog=t.cheerLog||{};
+    if(t.cheerLog[me.id]===today()){ toast("오늘은 이미 응원했습니다. 내일 다시 응원할 수 있습니다"); return; }
+    t.cheerLog[me.id]=today(); t.cheers=(t.cheers||0)+1; DB.save(); render(); toast(`${t.name}을(를) 응원했습니다`); return; }
   if(d.match){ go("match",{matchId:d.match}); return; }
   if(d.pick){ const m=DB.s.matches.find(x=>x.id===ui.matchId); m.votes=m.votes||{}; m.votes[me.id]=d.pick; DB.save(); render(); toast("예측했습니다. 결과가 나오면 적중 여부가 표시됩니다"); return; }
   if(d.follow){ const f=DB.s.follows[me.id]=DB.s.follows[me.id]||[]; const k=f.indexOf(d.follow);
@@ -1346,6 +1397,7 @@ document.addEventListener("click",e=>{
     case "clearq": ui.q=""; ui.page=1; render(); break;
     case "delpost": DB.s.posts=DB.s.posts.filter(x=>x.id!==ui.postId); DB.save(); toast("글을 삭제했습니다"); listBack(); break;
     case "shareimg": { const t=DB.team(ui.teamId); el.disabled=true; shareCard(t).then(u=>{ ui.shareImg=u; render(); window.scrollTo(0,0); }).catch(()=>{ toast("이미지를 만들지 못했습니다. 다시 눌러 주세요"); el.disabled=false; }); break; }
+    case "sharefor": { const tid=d.tid; go("team",{teamId:tid}); shareCard(DB.team(tid)).then(u=>{ ui.shareImg=u; render(); window.scrollTo(0,0); }); break; }
     case "closeshare": ui.shareImg=null; render(); break;
     case "apply": toast("시제품이라 실제 신청은 저장되지 않습니다"); break;
     case "sync": { const live=DB.liveSeason(), r=DB.nextRound(live.id), n=DB.syncResults(live.id); toast(`${r}라운드 ${n}경기 결과를 불러왔습니다. 각 더비 게시판에 결과 글이 올라갔습니다`); render(); break; }
