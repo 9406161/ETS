@@ -414,6 +414,17 @@ h2.sec.small{font-size:17px}
   .lgcards{grid-template-columns:minmax(0,1fr)}
   .seg button{padding:6px 10px}
 }
+.slot .spb{position:absolute;top:8px;right:8px;background:#fff;color:#16211b;font-size:11px;font-weight:700;padding:1px 7px;border-radius:3px;letter-spacing:.02em}
+.slot .cap .own{font-size:11px;opacity:.8}
+.squeue{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.squeue li{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;align-items:start;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.squeue li:last-child{border-bottom:0;padding-bottom:0}
+.sq-pv .slot{aspect-ratio:2/1}
+.sq-info .meta{margin-top:4px}
+.tfs{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid;gap:10px;margin:0}
+.tfs legend{font-size:12px;color:var(--muted);padding:0 4px}
+.sponsorbox{border-color:var(--gold)}
+@media (max-width:640px){.squeue li{grid-template-columns:minmax(0,1fr)}}
 </style>
 
 <header class="top">
@@ -444,7 +455,7 @@ h2.sec.small{font-size:17px}
    지금은 예시 데이터를 브라우저(localStorage)에 저장. 실서비스에서는
    load/save와 syncResults만 Firebase + 협회 데이터 연동으로 바꾸면 됨.
    ===================================================================== */
-const KEY = "ets-demo-v6";
+const KEY = "ets-demo-v7";
 const DAY = 864e5;
 const RULE = {
   stage:{K5:1,K6:2,K7:7},   // 전국 무대 칸 배분: K5 정상 1, K6 정상 2, K7 승격 7
@@ -452,6 +463,9 @@ const RULE = {
   regionPrize:3             // 더비 상단 칸 수
 };
 const DIVS = ["K5","K6","K7"];
+/* 스폰서 광고 업종: 허용 / 별도 검수 / 금지 */
+const AD_CATS = ["식당·카페","축구용품·스포츠","지역 상점","학원·교육","자동차·정비","부동산","기업·단체","병원·한의원(별도 검수)","건강식품(별도 검수)","기타"];
+const AD_BANNED = ["도박·사행성(토토 등)","성인·유흥","대부·대출","불법 의약품·담배"];
 const DIV_INFO = {K5:"생활축구 최상위 · 시·도 단위", K6:"시·도 단위", K7:"구·군 권역 단위"};
 
 /* 17개 시·도 = 더비(갤러리), 시·군·구 = K7 권역 후보(준비 중 지역 안내용).
@@ -504,7 +518,7 @@ function seed(){
   LEAGUES.forEach(([lid,rid,,,names])=>names.forEach((name,i)=>{
     const short = name==="DT"?"DT":name.replace(/\s|FC|유나이티드/g,"").slice(0,2);
     teams.push({id:"t"+(++n),name,short,color:COLORS[n%COLORS.length],regionId:rid,leagueId:lid,str:3-i,
-      slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*DAY});
+      slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*DAY,adMode:"team",sponsor:null});
   }));
   const T=name=>teams.find(t=>t.name===name);
   const promo={
@@ -523,6 +537,9 @@ function seed(){
     "창원 시티즌스":["창원 시민 축구단","",false,"",""]
   };
   Object.entries(promo).forEach(([nm,p])=>Object.assign(T(nm),{slogan:p[0],link:p[1],recruiting:p[2],intro:p[3],contact:p[4]}));
+  // 스폰서 예시: 승인 1건, 검수 대기 1건
+  Object.assign(T("DT"),{adMode:"sponsor",sponsor:{name:"삼산 풋볼샵",category:"축구용품·스포츠",slogan:"DT 공식 스폰서 · 축구화 10% 할인",link:"https://example.com/shop",image:"",status:"approved",note:"",at:now-20*DAY}});
+  Object.assign(T("광안리 유나이티드"),{adMode:"sponsor",sponsor:{name:"광안리 돼지국밥",category:"식당·카페",slogan:"경기 끝나고 국밥 한 그릇 · 광안리 유나이티드 공식 스폰서",link:"",image:"",status:"pending",note:"",at:now-2*36e5}});
   const id=nm=>T(nm).id;
 
   /* 2026 시즌 일정: 리그마다 4팀 2회전(6라운드). 5라운드까지 결과, 6라운드는 예정 */
@@ -572,7 +589,7 @@ function seed(){
     P("gyeongnam","","경남 더비 열렸네요","양산·김해·창원·진주 모여라","눈팅러",40*DAY,140,11,0,[["통영주장","ㅎㅇ",40*DAY-H]]),
     P("gyeongnam","질문","창원 원정 교통편 질문","주차 가능한가요","통영주장",4*DAY,35,0,0,[])
   ];
-  const s={v:6,homeRegion:"ulsan",me:"u0",nextPostId:1,regions,leagues,teams,matches,seasons,honors,users,posts:[]};
+  const s={v:7,homeRegion:"ulsan",me:"u0",nextPostId:1,regions,leagues,teams,matches,seasons,honors,users,posts:[]};
   posts.forEach(p=>{p.id=s.nextPostId++; s.posts.push(p);});
   // 5라운드 결과 글, 6라운드 일정 글
   matches.filter(m=>m.round===5).forEach(m=>resultPost(s,m,new Date(m.date).getTime()+20*H));
@@ -601,7 +618,7 @@ function roundPost(s,rid,round,at){
 
 const DB = {
   s:null,
-  load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const x=JSON.parse(raw); if(x&&x.v===6){ this.s=x; return; } } }catch(e){} this.s=seed(); },
+  load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const x=JSON.parse(raw); if(x&&x.v===7){ this.s=x; return; } } }catch(e){} this.s=seed(); },
   save(){ try{ localStorage.setItem(KEY,JSON.stringify(this.s)); return true; }catch(e){ toast("브라우저 저장 공간이 가득 찼습니다. 이미지를 더 작은 것으로 바꿔 주세요."); return false; } },
   reset(){ this.s=seed(); this.save(); },
   me(){ return this.s.users.find(u=>u.id===this.s.me); },
@@ -713,11 +730,21 @@ function defaultBanner(team,tier){
 <text x="${w*0.78}" y="${h*0.45}" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-weight="900" font-size="${h*0.2}" fill="#fff" fill-opacity=".85">${esc(team.short)}</text></svg>`;
   return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
-function slotHTML(team,rank,label,img){
-  const src = img!==undefined ? (img||defaultBanner(team,TIER(rank))) : (team.image||defaultBanner(team,TIER(rank)));
-  return `<button class="slot t${TIER(rank)}" data-team="${team.id}" aria-label="${esc(team.name)} 팀 페이지">
-    <img src="${esc(src)}" alt=""><span class="rk">${esc(label)}</span>
-    <span class="cap"><b>${esc(team.name)}</b>${team.slogan?`<span class="sl">${esc(team.slogan)}</span>`:""}</span></button>`;
+/* 공간에 실제로 보일 내용: 승인된 스폰서 광고가 있으면 그것, 아니면 팀 홍보 */
+function slotContent(t){
+  const sp=t.sponsor;
+  if(t.adMode==="sponsor"&&sp&&sp.status==="approved") return {sponsor:true,img:sp.image,name:sp.name,sub:sp.slogan,link:safeUrl(sp.link)};
+  return {sponsor:false,img:t.image,name:t.name,sub:t.slogan,link:""};
+}
+function slotHTML(team,rank,label,img,force){
+  const c=force||slotContent(team);
+  const pic = img!==undefined ? img : c.img;
+  const src = pic || defaultBanner(team,TIER(rank));
+  const inner=`<img src="${esc(src)}" alt=""><span class="rk">${esc(label)}</span>${c.sponsor?`<span class="spb">스폰서</span>`:""}
+    <span class="cap"><b>${esc(c.name)}</b>${c.sub?`<span class="sl">${esc(c.sub)}</span>`:""}${c.sponsor?`<span class="sl own">${esc(team.name)} 공식 스폰서</span>`:""}</span>`;
+  return c.sponsor&&c.link
+    ? `<a class="slot t${TIER(rank)}" href="${esc(c.link)}" target="_blank" rel="noopener sponsored nofollow" aria-label="${esc(c.name)} (${esc(team.name)} 스폰서)">${inner}</a>`
+    : `<button class="slot t${TIER(rank)}" data-team="${team.id}" aria-label="${esc(team.name)} 팀 페이지">${inner}</button>`;
 }
 function hallHTML(items,labelFn){
   const groups=[[1,1],[2,3],[4,6],[7,10]];
@@ -738,16 +765,17 @@ function shrinkImage(file){
 /* =====================================================================
    3. 화면
    ===================================================================== */
-const ui = {view:"home",region:"ulsan",gtab:"posts",board:"ulsan",page:1,q:"",postId:null,teamId:null,leagueId:null,div:"K5",confirmFinal:false,editTeam:null,draftImg:null};
+const ui = {adMode:null,view:"home",region:"ulsan",gtab:"posts",board:"ulsan",page:1,q:"",postId:null,teamId:null,leagueId:null,div:"K5",confirmFinal:false,editTeam:null,draftImg:null};
 function go(view,extra){ Object.assign(ui,{view,confirmFinal:false},extra||{}); render(); window.scrollTo(0,0); }
 
 function renderTabs(){
   const rn=DB.region(DB.s.homeRegion).name;
   let cur = ui.view==="post"||ui.view==="write" ? "gallery" : ui.view==="team"?"league":ui.view;
   if(cur==="gallery"&&(ui.view==="gallery"?ui.region:ui.board)!==DB.s.homeRegion) cur="";
-  const items=[["home","홈","홈"],["gallery",`${rn} 더비`,`${rn} 더비`],["league","리그·순위","리그"],["space","우리팀","우리팀"]];
-  $("#tabs").innerHTML=items.map(([k,l])=>`<button class="tab" data-go="${k}" ${cur===k?'aria-current="page"':""}>${esc(l)}</button>`).join("");
-  $("#bnav").innerHTML=items.map(([k,,s])=>`<button data-go="${k}" ${cur===k?'aria-current="page"':""}>${ICON[k]}<span>${esc(s)}</span></button>`).join("");
+  const pend=DB.me().role==="admin"?DB.s.teams.filter(t=>t.adMode==="sponsor"&&t.sponsor&&t.sponsor.status==="pending").length:0;
+  const items=[["home","홈","홈"],["gallery",`${rn} 더비`,`${rn} 더비`],["league","리그·순위","리그"],["space",DB.me().role==="admin"?"팀·스폰서 관리":"우리팀","우리팀",pend]];
+  $("#tabs").innerHTML=items.map(([k,l,,b])=>`<button class="tab" data-go="${k}" ${cur===k?'aria-current="page"':""}>${esc(l)}${b?`<span class="badge num">${b}</span>`:""}</button>`).join("");
+  $("#bnav").innerHTML=items.map(([k,,s,b])=>`<button data-go="${k}" ${cur===k?'aria-current="page"':""}>${ICON[k]}<span>${esc(s)}</span>${b?`<span class="badge num">${b}</span>`:""}</button>`).join("");
   $("#home-region").innerHTML=DB.s.regions.map(r=>`<option value="${r.id}" ${r.id===DB.s.homeRegion?"selected":""}>${esc(r.name)}${r.open?"":" (준비 중)"}</option>`).join("");
   $("#who-sel").innerHTML=DB.s.users.map(u=>{ const t=u.teamId?DB.team(u.teamId):null;
     const role=u.role==="admin"?"관리자":u.role==="captain"?`${t.name} 주장`:"일반회원";
@@ -791,7 +819,7 @@ function homeView(){
       <div class="local">
         <div class="localhead"><span class="eyebrow">내 지역</span><h2 class="sec">${esc(r.name)} 더비</h2>
           <span class="sub">${r.open?`${DB.leaguesIn(r.id).length}개 리그 · ${DB.teamsIn(r.id).length}팀`:"준비 중"}</span><button class="btn pri" data-region="${r.id}">들어가기</button></div>
-        ${r.open?`<div class="ltop">${rtop.map(x=>{const t=DB.team(x.teamId); return `<button class="mslot" data-team="${t.id}" style="--tc:${t.color}"><span class="mtag">${esc(x.tag)}</span><span class="mn"><b>${esc(t.name)}</b><span>${esc(t.slogan)||"&nbsp;"}</span></span></button>`;}).join("")}</div>
+        ${r.open?`<div class="ltop">${rtop.map(x=>{const t=DB.team(x.teamId), c=slotContent(t); return `<button class="mslot" data-team="${t.id}" style="--tc:${t.color}"><span class="mtag">${esc(x.tag)}</span><span class="mn"><b>${esc(t.name)}</b><span>${c.sponsor?`스폰서 ${esc(c.name)} · `:""}${esc(c.sub)||"&nbsp;"}</span></span></button>`;}).join("")}</div>
         <div class="two">
           <div class="box"><h3>새 글 <button data-region="${r.id}">더보기</button></h3><ul class="linklist">${rposts.map(plink).join("")||`<li class="hint">아직 글이 없습니다</li>`}</ul></div>
           <div class="box"><h3>다가오는 경기 <button data-region="${r.id}" data-gt="league">일정 전체</button></h3><ul class="flist">${up.map(fixtureLi).join("")||`<li class="hint">예정된 경기가 없습니다</li>`}</ul></div>
@@ -983,6 +1011,10 @@ function teamView(){
     <div class="cols"><section class="stack">
       <div><div class="sechead"><h2 class="sec">${esc(live.id)} 경기 결과</h2><span class="official">협회 공식 기록</span></div>${past.length?`<ul class="mlist">${past.map(fixtureLi).join("")}</ul>`:`<div class="panel empty">아직 결과가 없습니다.</div>`}</div>
     </section><aside class="side">
+      ${t.adMode==="sponsor"&&t.sponsor&&(t.sponsor.status==="approved"||me.role==="admin"||me.teamId===t.id)?`<div class="box sponsorbox"><h3>공식 스폰서 ${t.sponsor.status!=="approved"?`<span class="pill ${t.sponsor.status==="pending"?"wait":"no"}">${t.sponsor.status==="pending"?"검수 대기":"반려"}</span>`:""}</h3>
+        <p style="margin:0"><b>${esc(t.sponsor.name)}</b> <span class="hint">${esc(t.sponsor.category)}</span></p>
+        ${t.sponsor.slogan?`<p class="hint" style="margin:4px 0 0">${esc(t.sponsor.slogan)}</p>`:""}
+        ${safeUrl(t.sponsor.link)&&t.sponsor.status==="approved"?`<p style="margin:10px 0 0"><a class="btn" href="${esc(safeUrl(t.sponsor.link))}" target="_blank" rel="noopener sponsored nofollow">스폰서 보러 가기</a></p>`:""}</div>`:""}
       <div class="box"><h3>우승·승격 기록</h3>${hon.length?`<ul class="trophy">${hon.map(h=>`<li>${esc(h.text)}</li>`).join("")}</ul>`:`<p class="hint" style="margin:0">아직 기록이 없습니다</p>`}</div>
       <div class="box"><h3>팀 소개</h3><p style="margin:0;white-space:pre-wrap">${esc(t.intro)||'<span class="hint">아직 소개가 없습니다</span>'}</p></div>
       <div class="box"><h3>연락 방법</h3><p style="margin:0">${esc(t.contact)||'<span class="hint">등록 안 됨</span>'}</p>
@@ -990,34 +1022,63 @@ function teamView(){
     </aside></div>`;
 }
 
+function sponsorQueue(){
+  const q=DB.s.teams.filter(t=>t.adMode==="sponsor"&&t.sponsor&&t.sponsor.status==="pending");
+  return `<section class="panel admin" style="margin-bottom:16px"><div class="sechead"><h2 class="sec">스폰서 광고 검수</h2><span class="sub">승인 전에는 공간에 팀 홍보가 그대로 보입니다 · 금지 업종: ${AD_BANNED.map(esc).join(", ")}</span></div>
+    ${q.length?`<ul class="squeue">${q.map(t=>{const sp=t.sponsor, flag=/별도 검수/.test(sp.category); return `<li>
+      <div class="sq-pv">${slotHTML(t,2,"미리보기",undefined,{sponsor:true,img:sp.image,name:sp.name,sub:sp.slogan,link:""})}</div>
+      <div class="sq-info"><b>${esc(sp.name)}</b> <span class="hint">→ ${esc(t.name)}</span>
+        <div class="meta"><span class="${flag?"pill wait":"hint"}">${esc(sp.category)}</span><span class="hint">${sp.link?esc(sp.link):"링크 없음"}</span><span class="hint num">${when(sp.at)} 신청</span></div>
+        <p style="margin:4px 0 0">${esc(sp.slogan)||'<span class="hint">문구 없음</span>'}</p>
+        <div class="actions" style="justify-content:flex-start;margin-top:8px"><button class="btn sm pri" data-sp="approve" data-tid="${t.id}">승인</button>
+          <select id="rej-${t.id}" aria-label="반려 사유"><option>업종 부적합</option><option>내용 부적절</option><option>링크 오류</option><option>이미지 품질</option></select>
+          <button class="btn sm" data-sp="reject" data-tid="${t.id}">반려</button></div></div></li>`;}).join("")}</ul>`:`<p class="hint" style="margin:0">검수 대기 중인 광고가 없습니다</p>`}
+  </section>`;
+}
 function spaceView(){
   const me=DB.me();
   const tid = me.role==="admin" ? (ui.editTeam||DB.s.teams[0].id) : me.teamId;
-  const intro=`<div class="sechead"><h2 class="sec">우리팀 정보·공간</h2><span class="sub">여기서 고친 이미지와 문구가 팀 페이지, 전국 무대·더비 상단 공간(보유 시)에 모두 반영됩니다</span></div>`;
+  const intro=`<div class="sechead"><h2 class="sec">${me.role==="admin"?"팀·스폰서 관리":"우리팀 정보·공간"}</h2><span class="sub">공간은 팀 홍보로 쓰거나 스폰서에게 광고 자리로 내줄 수 있습니다</span></div>`;
   if(!tid) return intro+`<div class="panel empty">팀 주장 계정으로 들어오면 자기 팀 정보와 공간을 꾸밀 수 있습니다.<p><button class="btn" data-go="league">리그 보기</button></p></div>`;
   const t=DB.team(tid), slots=DB.slotsOf(t), hall=DB.hallSeason();
-  const img=ui.draftImg!==null?ui.draftImg:t.image;
+  const mode=ui.adMode||t.adMode, sp=t.sponsor||{name:"",category:"",slogan:"",link:"",image:"",status:"",note:""};
+  const img=ui.draftImg!==null?ui.draftImg:(mode==="sponsor"?sp.image:t.image);
+  const force = mode==="sponsor"?{sponsor:true,img,name:sp.name||"스폰서 이름",sub:sp.slogan,link:""}:{sponsor:false,img,name:t.name,sub:t.slogan,link:""};
   const pv=[];
-  if(slots.national) pv.push(`<div class="hint">전국 무대 ${slots.national.rank}칸</div><div class="preview">${slotHTML({...t,image:img},slots.national.rank,`${slots.national.rank} · ${slots.national.tag}`,img)}</div>`);
-  if(slots.region) pv.push(`<div class="hint">${esc(DB.region(t.regionId).name)} 더비 상단 ${slots.region.rank}칸</div><div class="preview">${slotHTML({...t,image:img},slots.region.rank,`${hall.id} ${slots.region.tag}`,img)}</div>`);
-  return intro+`
-  ${me.role==="admin"?`<div class="form" style="margin-bottom:12px"><label>관리자: 수정할 팀<select id="edit-team">${DB.s.leagues.map(L=>`<optgroup label="${esc(L.name)}">${DB.s.teams.filter(x=>x.leagueId===L.id).map(x=>`<option value="${x.id}" ${x.id===tid?"selected":""}>${esc(x.name)}</option>`).join("")}</optgroup>`).join("")}</select></label></div>`:""}
-  <div class="notice" style="margin-bottom:12px">${pv.length?`<b>${esc(t.name)}</b>은(는) ${esc(hall.id)} 시즌 성과로 ${[slots.national?"전국 무대":"",slots.region?"더비 상단":""].filter(Boolean).join("과 ")} 공간을 갖고 있습니다. 다음 시즌 확정 때까지 유지됩니다.`
-    :`<b>${esc(t.name)}</b>은(는) 지금 보유한 공간이 없습니다. 소속 리그에서 우승하면 다음 시즌 더비 상단 또는 전국 무대 공간을 받습니다. 팀 페이지 정보는 지금도 수정할 수 있습니다.`}</div>
+  if(slots.national) pv.push(`<div class="hint">전국 무대 ${slots.national.rank}칸</div><div class="preview">${slotHTML(t,slots.national.rank,`${slots.national.rank} · ${slots.national.tag}`,img,force)}</div>`);
+  if(slots.region) pv.push(`<div class="hint">${esc(DB.region(t.regionId).name)} 더비 상단 ${slots.region.rank}칸</div><div class="preview">${slotHTML(t,slots.region.rank,`${hall.id} ${slots.region.tag}`,img,force)}</div>`);
+  const st = t.adMode==="sponsor"&&t.sponsor ? (t.sponsor.status==="approved"?`<span class="pill ok">게시 중</span>`:t.sponsor.status==="pending"?`<span class="pill wait">검수 대기</span>`:`<span class="pill no">반려${t.sponsor.note?" · "+esc(t.sponsor.note):""}</span>`) : "";
+  return intro+(me.role==="admin"?sponsorQueue():"")+`
+  ${me.role==="admin"?`<div class="form" style="margin-bottom:12px"><label>수정할 팀<select id="edit-team">${DB.s.leagues.map(L=>`<optgroup label="${esc(L.name)}">${DB.s.teams.filter(x=>x.leagueId===L.id).map(x=>`<option value="${x.id}" ${x.id===tid?"selected":""}>${esc(x.name)}${x.adMode==="sponsor"?" · 스폰서":""}</option>`).join("")}</optgroup>`).join("")}</select></label></div>`:""}
+  <div class="notice" style="margin-bottom:12px">${pv.length?`<b>${esc(t.name)}</b>은(는) ${esc(hall.id)} 시즌 성과로 ${[slots.national?"전국 무대":"",slots.region?"더비 상단":""].filter(Boolean).join("과 ")} 공간을 갖고 있습니다. 다음 시즌 확정 때까지 직접 쓰거나 스폰서에게 내줄 수 있습니다.`
+    :`<b>${esc(t.name)}</b>은(는) 지금 보유한 공간이 없습니다. 소속 리그에서 우승하면 다음 시즌 공간을 받습니다. 스폰서 정보는 팀 페이지에 먼저 노출됩니다.`}</div>
+  <div class="boardbar" style="margin-bottom:12px"><div class="seg"><button data-admode="team" aria-pressed="${mode==="team"}">우리팀 홍보</button><button data-admode="sponsor" aria-pressed="${mode==="sponsor"}">스폰서 광고</button></div>${st}</div>
   <div class="editor">
     <form class="panel form" id="sform">
+      ${mode==="sponsor"?`
+      <div class="row"><label>스폰서 이름<input type="text" id="sp-name" maxlength="30" value="${esc(sp.name)}" required></label>
+        <label>업종<select id="sp-cat" required><option value="">선택</option>${AD_CATS.map(c=>`<option ${c===sp.category?"selected":""}>${esc(c)}</option>`).join("")}</select></label></div>
+      <p class="hint" style="margin:-4px 0 0">받을 수 없는 업종: ${AD_BANNED.map(esc).join(", ")}</p>
+      <label>광고 이미지<input type="file" id="s-img" accept="image/*"><span class="hint">스폰서가 준 배너. 1200px로 줄여서 저장합니다.</span></label>
+      ${img?`<div><button type="button" class="btn sm" data-act="clearimg">이미지 빼기</button></div>`:""}
+      <label>광고 문구 (60자)<input type="text" id="sp-slogan" maxlength="60" value="${esc(sp.slogan)}"></label>
+      <label>스폰서 링크<input type="url" id="sp-link" placeholder="https://" value="${esc(sp.link)}"><span class="hint">공간을 누르면 이 주소로 갑니다. 없으면 팀 페이지로 갑니다.</span></label>
+      <label class="check"><input type="checkbox" id="sp-agree" required> 금지 업종이 아니며, 공간에 "스폰서" 표시가 붙는 것에 동의합니다</label>
+      <p class="hint" style="margin:0">저장하면 운영자 검수 후 게시됩니다. 거래(금액·기간)는 팀과 스폰서가 직접 정합니다.</p>`
+      :`
       <label>배너 이미지<input type="file" id="s-img" accept="image/*"><span class="hint">가로로 긴 사진이 잘 어울립니다. 1200px로 줄여서 저장합니다.</span></label>
       ${img?`<div><button type="button" class="btn sm" data-act="clearimg">이미지 빼고 기본 배너로</button></div>`:""}
-      <label>홍보 문구 (60자)<input type="text" id="s-slogan" maxlength="60" value="${esc(t.slogan)}"><span class="hint">작은 칸에서는 앞부분만 보입니다</span></label>
-      <label>팀 소개<textarea id="s-intro" maxlength="500" style="min-height:90px">${esc(t.intro)}</textarea></label>
-      <div class="row"><label>연락 방법<input type="text" id="s-contact" maxlength="60" value="${esc(t.contact)}" placeholder="오픈채팅, 밴드 이름 등"></label>
-        <label>외부 링크<input type="url" id="s-link" placeholder="https://" value="${esc(t.link)}"></label></div>
-      <label class="check"><input type="checkbox" id="s-rec" ${t.recruiting?"checked":""}> 팀원 모집 중 표시</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri">저장</button><button type="button" class="btn" data-team="${t.id}">팀 페이지 보기</button>
+      <label>홍보 문구 (60자)<input type="text" id="s-slogan" maxlength="60" value="${esc(t.slogan)}"></label>`}
+      <fieldset class="tfs"><legend>팀 페이지 정보</legend>
+        <label>팀 소개<textarea id="s-intro" maxlength="500" style="min-height:80px">${esc(t.intro)}</textarea></label>
+        <div class="row"><label>연락 방법<input type="text" id="s-contact" maxlength="60" value="${esc(t.contact)}" placeholder="오픈채팅, 밴드 이름 등"></label>
+          <label>팀 링크<input type="url" id="s-link" placeholder="https://" value="${esc(t.link)}"></label></div>
+        <label class="check"><input type="checkbox" id="s-rec" ${t.recruiting?"checked":""}> 팀원 모집 중 표시</label></fieldset>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri">${mode==="sponsor"&&me.role!=="admin"?"검수 요청":"저장"}</button><button type="button" class="btn" data-team="${t.id}">팀 페이지 보기</button>
         ${me.role==="admin"?`<button type="button" class="btn warn" data-act="wipeteam">부적절 내용 내리기</button>`:""}</div>
       <p class="hint" style="margin:0">마지막 수정: ${new Date(t.updatedAt).toLocaleString("ko-KR")}</p>
     </form>
-    <div id="s-preview" class="stack">${pv.join("")||`<div class="hint">공간을 받으면 여기서 미리보기가 나옵니다</div><div class="preview">${slotHTML({...t,image:img},2,"예시",img)}</div>`}</div>
+    <div id="s-preview" class="stack">${pv.join("")||`<div class="hint">공간을 받으면 이렇게 보입니다</div><div class="preview">${slotHTML(t,2,"예시",img,force)}</div>`}</div>
   </div>`;
 }
 
@@ -1043,11 +1104,18 @@ function render(){
 /* =====================================================================
    4. 동작 연결
    ===================================================================== */
+/* 다시 그릴 때 입력 중인 값 보존 */
+function keepForm(){ return [...document.querySelectorAll("#sform input[id],#sform textarea[id],#sform select[id]")].filter(x=>x.type!=="file").map(x=>[x.id,x.type==="checkbox"?x.checked:x.value]); }
+function restoreForm(k){ k.forEach(([id,v])=>{ const x=document.getElementById(id); if(!x) return; if(x.type==="checkbox") x.checked=v; else x.value=v; }); }
 function listBack(){ go("gallery",{region:ui.board,gtab:"posts"}); }
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-post],[data-gtab],[data-page],[data-act],[data-vote],[data-region],[data-team],[data-league],[data-div]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-post],[data-gtab],[data-page],[data-act],[data-vote],[data-region],[data-team],[data-league],[data-div],[data-admode],[data-sp]"); if(!el) return;
   const d=el.dataset, me=DB.me();
-  if(d.go){ if(d.go==="gallery") go("gallery",{region:DB.s.homeRegion,gtab:"posts",page:1,q:""}); else go(d.go,{page:1,q:"",draftImg:null}); return; }
+  if(d.admode){ const keep=keepForm(); ui.adMode=d.admode; ui.draftImg=null; render(); restoreForm(keep); return; }
+  if(d.sp){ const t=DB.team(d.tid); if(d.sp==="approve"){ t.sponsor.status="approved"; t.sponsor.note=""; toast(`${t.sponsor.name} 광고를 승인했습니다. ${t.name} 공간에 바로 게시됩니다`); }
+    else { t.sponsor.status="rejected"; t.sponsor.note=$("#rej-"+t.id).value; toast(`반려했습니다 (${t.sponsor.note}). 팀 공간에는 팀 홍보가 계속 보입니다`); }
+    DB.save(); render(); return; }
+  if(d.go){ if(d.go==="gallery") go("gallery",{region:DB.s.homeRegion,gtab:"posts",page:1,q:""}); else go(d.go,{page:1,q:"",draftImg:null,adMode:null}); return; }
   if(d.team){ go("team",{teamId:d.team}); return; }
   if(d.region){ go("gallery",{region:d.region,page:1,q:"",gtab:d.gt||(ui.view==="gallery"?ui.gtab:"posts"),leagueId:d.lg||null}); return; }
   if(d.league){ ui.leagueId=d.league; render(); return; }
@@ -1067,9 +1135,9 @@ document.addEventListener("click",e=>{
     case "cancelfinal": ui.confirmFinal=false; render(); break;
     case "finalize": { const live=DB.liveSeason(), nm=($("#next-name").value||"").trim()||String(+live.id+1);
       DB.finalize(live.id,nm); toast(`${live.id} 시즌 확정. 전국 무대와 더비 상단 주인이 바뀌었습니다`); go("home"); break; }
-    case "editteam": go("space",{editTeam:ui.teamId,draftImg:null}); break;
-    case "clearimg": ui.draftImg=""; render(); break;
-    case "wipeteam": { const tid=ui.editTeam||DB.s.teams[0].id; DB.saveTeam(tid,{image:"",slogan:"",link:"",intro:""}); ui.draftImg=null; toast("이미지·문구·링크·소개를 비웠습니다"); render(); break; }
+    case "editteam": go("space",{editTeam:ui.teamId,draftImg:null,adMode:null}); break;
+    case "clearimg": { const keep=keepForm(); ui.draftImg=""; render(); restoreForm(keep); break; }
+    case "wipeteam": { const tid=ui.editTeam||DB.s.teams[0].id; DB.saveTeam(tid,{image:"",slogan:"",link:"",intro:"",adMode:"team",sponsor:null}); ui.adMode=null; ui.draftImg=null; toast("이미지·문구·링크·소개를 비웠습니다"); render(); break; }
   }
 });
 document.addEventListener("submit",e=>{
@@ -1081,23 +1149,32 @@ document.addEventListener("submit",e=>{
     toast("글을 올렸습니다"); go("post",{postId:id});
   }
   if(f.id==="sform"){
-    const tid=me.role==="admin"?(ui.editTeam||DB.s.teams[0].id):me.teamId;
-    const raw=$("#s-link").value.trim(), link=raw?safeUrl(raw):"";
-    if(raw&&!link){ toast("링크는 https:// 로 시작해야 합니다"); return; }
-    const patch={slogan:$("#s-slogan").value.trim(),intro:$("#s-intro").value.trim(),contact:$("#s-contact").value.trim(),link,recruiting:$("#s-rec").checked};
-    if(ui.draftImg!==null) patch.image=ui.draftImg;
-    if(DB.saveTeam(tid,patch)){ ui.draftImg=null; toast("저장했습니다. 팀 페이지와 공간에 바로 반영됐습니다"); render(); }
+    const tid=me.role==="admin"?(ui.editTeam||DB.s.teams[0].id):me.teamId, t=DB.team(tid), mode=ui.adMode||t.adMode;
+    const chk=id=>{ const raw=$("#"+id).value.trim(); return raw?safeUrl(raw):""; };
+    if(($("#s-link").value.trim()&&!chk("s-link"))||(mode==="sponsor"&&$("#sp-link").value.trim()&&!chk("sp-link"))){ toast("링크는 https:// 로 시작해야 합니다"); return; }
+    const patch={intro:$("#s-intro").value.trim(),contact:$("#s-contact").value.trim(),link:chk("s-link"),recruiting:$("#s-rec").checked,adMode:mode};
+    let msg="저장했습니다. 팀 페이지와 공간에 바로 반영됐습니다";
+    if(mode==="sponsor"){
+      const old=t.sponsor||{};
+      patch.sponsor={name:$("#sp-name").value.trim(),category:$("#sp-cat").value,slogan:$("#sp-slogan").value.trim(),link:chk("sp-link"),
+        image:ui.draftImg!==null?ui.draftImg:(old.image||""),status:me.role==="admin"?"approved":"pending",note:"",at:Date.now()};
+      msg=me.role==="admin"?"스폰서 광고를 저장하고 바로 게시했습니다":"검수 요청을 보냈습니다. 승인되면 공간에 게시되고, 그전까지는 팀 홍보가 보입니다";
+    } else {
+      patch.slogan=$("#s-slogan").value.trim(); if(ui.draftImg!==null) patch.image=ui.draftImg;
+    }
+    if(DB.saveTeam(tid,patch)){ ui.draftImg=null; ui.adMode=null; toast(msg); render(); }
   }
 });
 document.addEventListener("change",async e=>{
   if(e.target.id==="home-region"){ DB.s.homeRegion=e.target.value; DB.save(); if(ui.view==="gallery") ui.region=DB.s.homeRegion; render(); toast(`내 지역을 ${DB.region(DB.s.homeRegion).name}(으)로 바꿨습니다`); }
   if(e.target.id==="who-sel"){ DB.s.me=e.target.value; const u=DB.me(); if(u.teamId) DB.s.homeRegion=DB.team(u.teamId).regionId; DB.save(); Object.assign(ui,{editTeam:null,draftImg:null}); render(); toast(`${DB.me().name} 계정으로 바꿨습니다`); }
-  if(e.target.id==="edit-team"){ ui.editTeam=e.target.value; ui.draftImg=null; render(); }
+  if(e.target.id==="edit-team"){ ui.editTeam=e.target.value; ui.draftImg=null; ui.adMode=null; render(); }
   if(e.target.id==="s-img"&&e.target.files[0]){
-    const keep=["s-slogan","s-intro","s-contact","s-link"].map(id=>[id,$("#"+id).value]), rec=$("#s-rec").checked;
-    try{ ui.draftImg=await shrinkImage(e.target.files[0]); render(); keep.forEach(([id,v])=>$("#"+id).value=v); $("#s-rec").checked=rec; toast("미리보기에 넣었습니다. 저장을 눌러야 반영됩니다"); }
+    const keep=keepForm();
+    try{ ui.draftImg=await shrinkImage(e.target.files[0]); render(); restoreForm(keep); toast("미리보기에 넣었습니다. 저장을 눌러야 반영됩니다"); }
     catch(err){ toast("이 이미지는 읽을 수 없습니다. JPG나 PNG로 다시 올려 주세요"); }
   }
+
 });
 $("#reset-btn").addEventListener("click",()=>{ DB.reset(); Object.assign(ui,{view:"home",region:DB.s.homeRegion,editTeam:null,draftImg:null}); render(); toast("예시 데이터로 되돌렸습니다"); });
 
