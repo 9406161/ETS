@@ -183,6 +183,89 @@ footer .wrap{padding-block:16px;display:flex;gap:16px;flex-wrap:wrap;align-items
 footer button{border:0;background:none;color:inherit;text-decoration:underline;padding:0}
 .guide{display:grid;gap:10px;max-width:72ch}
 .guide ol{margin:0;padding-left:20px;display:grid;gap:6px}
+
+/* 명예의 전당 그룹 (데스크톱: 1/2/3/4열) */
+.hall{display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
+.g{display:grid;gap:10px}
+.g1{grid-template-columns:minmax(0,1fr)}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.hall .slot{grid-column:auto}
+.glabel{display:none}
+
+/* 데스크톱에서는 숨기는 모바일 전용 요소 */
+.bnav,.fab,.mrows{display:none}
+
+/* ===== 모바일 (폰) ===== */
+@media (max-width:640px){
+  body{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+  .top .wrap{padding-block:10px;gap:10px;flex-wrap:nowrap}
+  .logo{font-size:24px}.logo small{display:none}
+  .who label{display:none}
+  .who select{max-width:170px;font-size:12px;padding:4px 6px}
+  .tabs{display:none}
+  main.wrap{padding-block:14px 24px}
+  h2.sec{font-size:20px}
+  .sechead{margin-bottom:10px}
+  .sechead .sub{font-size:12px;flex-basis:100%;order:3}
+
+  /* 하단 탭바 */
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;
+    background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .bnav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 7px;font-size:10.5px;color:var(--muted);position:relative}
+  .bnav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .bnav button[aria-current="page"]{color:var(--pitch);font-weight:700}
+  .bnav .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:10px;line-height:16px}
+
+  /* 글쓰기 플로팅 버튼 */
+  .fab{display:flex;align-items:center;gap:6px;position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:9;
+    border:0;border-radius:24px;padding:12px 18px;background:var(--pitch);color:var(--pitch-ink);font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .fab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+  .boardbar .btn.pri{display:none}
+  .sechead .right{margin-left:0}
+
+  /* 명예의 전당: 1위 크게, 2~3위 세로로, 4~10위는 옆으로 넘기기 */
+  .hall{gap:8px}
+  .t1{aspect-ratio:16/9}
+  .t1 img{object-position:85% 50%}
+  .t1 .cap span.sl{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .g2{grid-template-columns:minmax(0,1fr);gap:8px}
+  .g2 .slot{aspect-ratio:5/2}
+  .glabel{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+  .g3,.g4{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px;gap:8px;scrollbar-width:none}
+  .g3::-webkit-scrollbar,.g4::-webkit-scrollbar{display:none}
+  .g3 .slot{flex:0 0 74%;scroll-snap-align:start;aspect-ratio:16/10}
+  .g4 .slot{flex:0 0 46%;scroll-snap-align:start;aspect-ratio:1/1}
+  .g4 .cap b{font-size:14px}
+
+  /* 게시판: 표 대신 2줄 목록 */
+  .board table{display:none}
+  .mrows{display:block;list-style:none;margin:0;padding:0}
+  .mrows li{border-bottom:1px solid var(--line)}
+  .mrows li:last-child{border-bottom:0}
+  .mrows button{display:block;width:100%;border:0;background:none;text-align:left;padding:11px 12px}
+  .mrows .tt{font-size:15px;line-height:1.4;word-break:break-word}
+  .mrows .mm{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px;font-size:12px;color:var(--muted)}
+  .mrows button:active{background:var(--sunk)}
+  .board{border-radius:var(--r);border-top-width:2px}
+  .pager button{min-width:36px;padding:6px 8px}
+  .search input{flex:1}
+
+  /* 글 보기 */
+  .post h1{font-size:18px}
+  .post .body{font-size:15px;padding:16px 14px}
+  .vote button{width:64px;height:64px}
+  .cform{position:sticky;bottom:calc(62px + env(safe-area-inset-bottom,0px));background:var(--surface);padding-block:8px}
+
+  /* 순위표·경기 기록 */
+  .standings table{min-width:0}
+  .standings th,.standings td{padding:9px 6px}
+  .hm{display:none}
+  .mlist li{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}
+  .mlist li > :nth-child(2){grid-column:1/-1;order:3}
+  .form .row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .order li{padding:8px}
+  .btn.sm{padding:5px 10px}
+}
 </style>
 
 <header class="top">
@@ -196,6 +279,7 @@ footer button{border:0;background:none;color:inherit;text-decoration:underline;p
 </header>
 <nav class="tabs" aria-label="메뉴"><div class="wrap" id="tabs"></div></nav>
 <main class="wrap" id="app"></main>
+<nav class="bnav" id="bnav" aria-label="하단 메뉴"></nav>
 <footer><div class="wrap">
   <span>ETS 시제품 · 데이터는 이 브라우저에만 저장됩니다</span>
   <button data-go="guide">이용안내</button>
@@ -350,6 +434,24 @@ function when(ts){
 let toastTimer;
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true,2600); }
 const TIER = r=> r===1?1 : r<=3?2 : r<=6?3 : 4;
+const sv = d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  home: sv('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'),
+  free: sv('<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'),
+  match: sv('<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.6h-5L8 10.4z"/>'),
+  league: sv('<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8"/>'),
+  space: sv('<path d="M5 21V4"/><path d="M5 4h12l-2.5 4 2.5 4H5"/>'),
+  pen: sv('<path d="M4 20l4-1 11-11-3-3L5 16z"/>')
+};
+/* 명예의 전당: 순위 구간별로 묶음 */
+function hallHTML(slots){
+  const groups=[[1,1],[2,3],[4,6],[7,10]];
+  return `<div class="hall">${groups.map(([a,b],i)=>{
+    const g=slots.filter(s=>s.rank>=a&&s.rank<=b); if(!g.length) return "";
+    const label = i>=2 ? `<div class="glabel"><span>${a}~${b}위</span><span>옆으로 넘기기 ›</span></div>` : "";
+    return label+`<div class="g g${i+1}">${g.map(s=>slotHTML(s)).join("")}</div>`;
+  }).join("")}</div>`;
+}
 const SLOGAN_MAX = {1:60,2:40,3:30,4:20};
 
 /* 이미지가 없는 공간에 넣는 기본 배너(팀 색 + 팀 약칭) */
@@ -401,6 +503,8 @@ function renderTabs(){
   const items=[["home","홈"],["free","자유갤러리"],["match","매치모집"],["league","대회·순위",n],["space","우리팀 공간"]];
   const cur = ui.view==="post"||ui.view==="write" ? ui.board : ui.view;
   $("#tabs").innerHTML = items.map(([k,l,b])=>`<button class="tab" data-go="${k}" ${cur===k?'aria-current="page"':""}>${l}${b?`<span class="badge num">${b}</span>`:""}</button>`).join("");
+  const short={home:"홈",free:"갤러리",match:"매치",league:"순위",space:"우리팀"};
+  $("#bnav").innerHTML = items.map(([k,,b])=>`<button data-go="${k}" ${cur===k?'aria-current="page"':""}>${ICON[k]}<span>${short[k]}</span>${b?`<span class="badge num">${b}</span>`:""}</button>`).join("");
   $("#who-sel").innerHTML = DB.s.users.map(u=>{
     const t=u.teamId?DB.team(u.teamId).name:""; const role=u.role==="admin"?"관리자":u.role==="captain"?`${t} 주장`:"일반회원";
     return `<option value="${u.id}" ${u.id===DB.s.me?"selected":""}>${esc(u.name)} · ${esc(role)}</option>`;
@@ -417,7 +521,7 @@ function homeView(){
     <section>
       <div class="sechead"><h2 class="sec">명예의 전당</h2>
         <span class="sub">${hall?esc(hall.name)+" 최종 1~10위 팀이 꾸미는 공간":"아직 끝난 시즌이 없습니다"}</span></div>
-      ${slots.length?`<div class="hall">${slots.map(s=>slotHTML(s)).join("")}</div>`:`<div class="panel empty">첫 시즌이 끝나면 1~10위 팀의 공간이 여기에 생깁니다.</div>`}
+      ${slots.length?hallHTML(slots):`<div class="panel empty">첫 시즌이 끝나면 1~10위 팀의 공간이 여기에 생깁니다.</div>`}
     </section>
     <aside class="side">
       ${live?`<div class="box"><h3>${esc(live.name)} 순위 <button data-go="league">전체</button></h3>
@@ -451,6 +555,15 @@ function boardView(){
       <td>${esc(p.author)}${team?` <span class="head">${esc(team.short)}</span>`:""}</td>
       <td class="num c-muted">${when(p.createdAt)}</td><td class="num c-muted">${p.views}</td>${isMatch?"":`<td class="num">${p.up}</td>`}</tr>`;
   };
+  const mrowHTML=p=>{
+    const au=DB.user(p.author); const team=au&&au.teamId?DB.team(au.teamId):null;
+    let head="";
+    if(isMatch&&p.meta) head=`<span class="pill ${p.meta.status==="open"?"open":"closed"}">${p.meta.status==="open"?"모집중":"마감"}</span>`;
+    else if(p.up>=10) head=`<span class="pill best">개념</span>`;
+    const extra = isMatch&&p.meta ? `<span class="num">${esc(p.meta.date.slice(5).replace("-","."))} 경기</span><span>실력 ${esc(p.meta.level)}</span>` : `<span>추천 <span class="num">${p.up}</span></span>`;
+    return `<li><button data-post="${p.id}"><div class="tt">${head}${esc(p.title)}${p.comments.length?` <span class="cmt num">[${p.comments.length}]</span>`:""}</div>
+      <div class="mm"><span>${esc(p.author)}${team?` · ${esc(team.short)}`:""}</span><span class="num">${when(p.createdAt)}</span><span>조회 <span class="num">${p.views}</span></span>${extra}</div></button></li>`;
+  };
   return `<div class="sechead"><h2 class="sec">${isMatch?"매치모집":"자유갤러리"}</h2>
       <span class="sub">${isMatch?"친선전·리그 경기 상대를 구하는 곳":"아무 축구 이야기"}</span>
       <div class="right boardbar">
@@ -458,7 +571,9 @@ function boardView(){
         <button class="btn pri" data-act="write">글쓰기</button></div></div>
     <div class="board"><table>
       <thead><tr><th>번호</th><th>제목</th>${isMatch?"<th>경기일</th><th>실력</th>":""}<th>글쓴이</th><th>작성일</th><th>조회</th>${isMatch?"":"<th>추천</th>"}</tr></thead>
-      <tbody>${rows.map(rowHTML).join("")||`<tr><td colspan="8" class="empty">${ui.q?"검색 결과가 없습니다":"아직 글이 없습니다. 첫 글을 써 보세요."}</td></tr>`}</tbody></table></div>
+      <tbody>${rows.map(rowHTML).join("")||`<tr><td colspan="8" class="empty">${ui.q?"검색 결과가 없습니다":"아직 글이 없습니다. 첫 글을 써 보세요."}</td></tr>`}</tbody></table>
+      <ul class="mrows">${rows.map(mrowHTML).join("")||`<li class="empty">${ui.q?"검색 결과가 없습니다":"아직 글이 없습니다. 첫 글을 써 보세요."}</li>`}</ul></div>
+    <button class="fab" data-act="write">${ICON.pen}글쓰기</button>
     <div class="pager">${Array.from({length:pages},(_,i)=>`<button class="num" data-page="${i+1}" ${ui.page===i+1?'aria-current="true"':""}>${i+1}</button>`).join("")}</div>
     <form class="search" id="search-form"><input type="text" id="q" placeholder="제목·내용·글쓴이" value="${esc(ui.q)}"><button class="btn">검색</button>${ui.q?`<button type="button" class="btn" data-act="clearq">검색 해제</button>`:""}</form>`;
 }
@@ -531,9 +646,9 @@ function leagueView(){
     <div class="sechead" style="margin:0"><h2 class="sec">${live?esc(live.name):"진행 중인 시즌 없음"}</h2>
       <span class="sub">승 3 · 무 1 · 패 0 · 동점이면 득실차 → 다득점. 노란 표시는 메인 공간을 받는 10위권.</span></div>
     ${myPending.length?`<div class="notice">${me.role==="admin"?"확인대기 경기":"우리 팀이 확인해야 할 경기"} <b class="num">${myPending.length}</b>건이 있습니다. 상대가 등록한 스코어가 맞으면 승인하세요.</div>`:""}
-    <div class="standings"><table><thead><tr><th>순위</th><th class="tm">팀</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>득실</th><th>승점</th></tr></thead><tbody>
+    <div class="standings"><table><thead><tr><th>순위</th><th class="tm">팀</th><th>경기</th><th class="hm">승</th><th class="hm">무</th><th class="hm">패</th><th class="hm">득점</th><th class="hm">실점</th><th>득실</th><th>승점</th></tr></thead><tbody>
       ${st.map((r,i)=>`<tr class="${i<10?"zone":""}"><td class="num">${i+1}</td><td class="tm"><span class="dot" style="background:${r.team.color}"></span>${esc(r.team.name)}</td>
-        <td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num">${r.gf}</td><td class="num">${r.ga}</td>
+        <td class="num">${r.p}</td><td class="num hm">${r.w}</td><td class="num hm">${r.d}</td><td class="num hm">${r.l}</td><td class="num hm">${r.gf}</td><td class="num hm">${r.ga}</td>
         <td class="num">${r.gf-r.ga>0?"+":""}${r.gf-r.ga}</td><td class="num pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
     ${canReport?`<section class="panel"><div class="sechead"><h2 class="sec">경기 결과 등록</h2><span class="sub">${esc(DB.team(me.teamId).name)} 기준으로 입력 → 상대 팀 주장이 승인하면 순위 반영</span></div>
       <form class="form" id="rform"><div class="row">
