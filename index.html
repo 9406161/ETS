@@ -1,8 +1,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>더비 DERBY</title>
+<title>ROOTS 루츠</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* 레이아웃: 상단 바 + 갤러리 탭 / 본문(좌: 명예의 전당·게시판, 우: 사이드 순위·개념글) — 경기장 잔디와 옐로카드에서 색을 가져옴 */
 :root{
@@ -503,11 +503,13 @@ button.score:hover,button.vs:hover{outline:1px solid var(--pitch)}
 .tgrid .stat.wide{grid-column:auto}
 @media (max-width:800px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.cheer.dark{padding:5px 10px;font-size:12px}}
+.logo .wm{font-family:"Archivo Black","Black Han Sans",system-ui,sans-serif;font-size:25px;letter-spacing:.06em}
+@media (max-width:640px){.logo .wm{font-size:21px}}
 </style>
 
 <header class="top">
   <div class="wrap">
-    <button class="logo" data-go="home" aria-label="더비 홈"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M16 2.5a13.5 13.5 0 0 0 0 27z" fill="currentColor"/><circle cx="16" cy="16" r="3.6" fill="var(--card)" stroke="var(--pitch)" stroke-width="1.6"/></svg><span class="wm">더비</span><small>지역 리그에서 전국 무대까지</small></button>
+    <button class="logo" data-go="home" aria-label="ROOTS 홈"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 17.2h19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 17C15 12 15.4 9 16 5.8 16.6 9 17 12 16 17Z M13.6 17C12.3 13.6 10.8 12 8.8 10.6 11.6 11.4 13.6 13.4 14.5 17Z M18.4 17C19.7 13.6 21.2 12 23.2 10.6 20.4 11.4 18.4 13.4 17.5 17Z" fill="var(--card)"/><path d="M16 17.5V25.5M16 19.6 12.6 23.4M16 19.6 19.4 23.4M16 22.4 14 25" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg><span class="wm">ROOTS</span><small>생활축구 공식 리그 커뮤니티</small></button>
     <label class="regsel" for="home-region"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></svg><span class="sr">내 지역</span><select id="home-region"></select></label>
     <div class="who">
       <label for="who-sel">데모 계정</label>
@@ -519,7 +521,7 @@ button.score:hover,button.vs:hover{outline:1px solid var(--pitch)}
 <main class="wrap" id="app"></main>
 <nav class="bnav" id="bnav" aria-label="하단 메뉴"></nav>
 <footer><div class="wrap">
-  <span>더비 시제품 · 데이터는 이 브라우저에만 저장됩니다</span>
+  <span>ROOTS 시제품 · 데이터는 이 브라우저에만 저장됩니다</span>
   <button data-go="guide">이용안내</button>
   <button id="reset-btn">예시 데이터로 초기화</button>
 </div></footer>
@@ -1151,7 +1153,7 @@ function matchView(){
 }
 /* 밴드·카톡용 순위 카드 이미지 (1080×1350) */
 async function shareCard(t){
-  try{ await Promise.all(['72px "Black Han Sans"','40px "Noto Sans KR"','700 40px "Noto Sans KR"'].map(f=>document.fonts.load(f))); }catch(e){}
+  try{ await Promise.all(['54px "Archivo Black"','72px "Black Han Sans"','40px "Noto Sans KR"','700 40px "Noto Sans KR"'].map(f=>document.fonts.load(f))); }catch(e){}
   const live=DB.liveSeason(), L=DB.league(t.leagueId), st=DB.standings(L.id,live.id), i=st.findIndex(x=>x.team.id===t.id), row=st[i];
   const f=DB.form(t.id,live.id), next=DB.s.matches.filter(m=>m.season===live.id&&m.status!=="final"&&(m.homeId===t.id||m.awayId===t.id)).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const W=1080,Hh=1350,c=document.createElement("canvas"); c.width=W; c.height=Hh; const g=c.getContext("2d");
@@ -1160,10 +1162,12 @@ async function shareCard(t){
   for(let x=0;x<W;x+=128){ g.fillStyle="rgba(255,255,255,.03)"; g.fillRect(x,0,64,Hh); }
   g.fillStyle=t.color; g.fillRect(0,0,W,16);
   // 로고
-  g.save(); g.translate(96,110); g.strokeStyle="#fff"; g.lineWidth=7; g.beginPath(); g.arc(0,0,34,0,Math.PI*2); g.stroke();
-  g.fillStyle="#fff"; g.beginPath(); g.moveTo(0,-34); g.arc(0,0,34,-Math.PI/2,Math.PI/2,true); g.closePath(); g.fill();
-  g.fillStyle="#f0b400"; g.beginPath(); g.arc(0,0,9,0,Math.PI*2); g.fill(); g.restore();
-  g.fillStyle="#fff"; g.font=`56px ${D}`; g.textBaseline="middle"; g.fillText("더비",146,112);
+  g.save(); g.translate(62,76); g.scale(2.3,2.3); g.strokeStyle="#fff"; g.lineCap="round";
+  g.lineWidth=2.4; g.beginPath(); g.arc(16,16,13.5,0,Math.PI*2); g.stroke();
+  g.lineWidth=1.8; g.stroke(new Path2D("M6.5 17.2h19"));
+  g.fillStyle="#f0b400"; g.fill(new Path2D("M16 17C15 12 15.4 9 16 5.8 16.6 9 17 12 16 17Z M13.6 17C12.3 13.6 10.8 12 8.8 10.6 11.6 11.4 13.6 13.4 14.5 17Z M18.4 17C19.7 13.6 21.2 12 23.2 10.6 20.4 11.4 18.4 13.4 17.5 17Z"));
+  g.lineWidth=1.4; g.stroke(new Path2D("M16 17.5V25.5M16 19.6 12.6 23.4M16 19.6 19.4 23.4M16 22.4 14 25")); g.restore();
+  g.fillStyle="#fff"; g.font=`54px "Archivo Black","Noto Sans KR",sans-serif`; g.textBaseline="middle"; g.fillText("ROOTS",150,114);
   g.fillStyle="#9db2a5"; g.font=`30px ${B}`; g.textAlign="right"; g.fillText(`${live.id} 시즌 · 협회 공식 기록`,W-80,112); g.textAlign="left";
   // 크레스트 + 팀명
   g.fillStyle=t.color; g.beginPath(); g.arc(170,340,96,0,Math.PI*2); g.fill();
@@ -1185,7 +1189,7 @@ async function shareCard(t){
   // 하단
   const sp=t.adMode==="sponsor"&&t.sponsor&&t.sponsor.status==="approved"?t.sponsor.name:"";
   g.fillStyle="rgba(255,255,255,.08)"; g.fillRect(0,Hh-80,W,80);
-  g.fillStyle="#cfd9d2"; g.font=`30px ${B}`; g.fillText(sp?`공식 스폰서 ${sp}`:"생활축구 공식 리그 커뮤니티 더비",80,Hh-40,W-160);
+  g.fillStyle="#cfd9d2"; g.font=`30px ${B}`; g.fillText(sp?`공식 스폰서 ${sp}`:"생활축구 공식 리그 커뮤니티 ROOTS",80,Hh-40,W-160);
   return c.toDataURL("image/png");
 }
 
@@ -1338,7 +1342,7 @@ function spaceView(){
 
 function guideView(){
   return `<div class="sechead"><h2 class="sec">이용안내</h2></div><div class="panel guide">
-    <p style="margin:0">더비는 대한축구협회 생활축구 디비전(K5·K6·K7) 공식 리그를 지역별로 보여 주고, 시즌 성과에 따라 팀에게 사이트 공간을 주는 커뮤니티입니다.</p>
+    <p style="margin:0">ROOTS(루츠)는 대한축구협회 생활축구 디비전(K5·K6·K7) 공식 리그를 지역별로 보여 주고, 시즌 성과에 따라 팀에게 사이트 공간을 주는 커뮤니티입니다.</p>
     <ol>
       <li>17개 시·도마다 <b>OO 더비</b>(예: 울산 더비)가 있고, 그 안에 게시판과 그 지역 K5·K6·K7 리그 순위·일정이 함께 있습니다.</li>
       <li>일정과 결과는 <b>협회 공식 기록</b>을 그대로 보여 줍니다. 누구도 고칠 수 없고, 결과가 들어오면 더비 게시판에 결과 글이 자동으로 올라옵니다.</li>
