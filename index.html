@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ROOTS 루츠</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* 레이아웃: 상단 바 + 갤러리 탭 / 본문(좌: 명예의 전당·게시판, 우: 사이드 순위·개념글) — 경기장 잔디와 옐로카드에서 색을 가져옴 */
 :root{
@@ -503,13 +503,13 @@ button.score:hover,button.vs:hover{outline:1px solid var(--pitch)}
 .tgrid .stat.wide{grid-column:auto}
 @media (max-width:800px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.cheer.dark{padding:5px 10px;font-size:12px}}
-.logo .wm{font-family:"Archivo Black","Black Han Sans",system-ui,sans-serif;font-size:25px;letter-spacing:.06em}
-@media (max-width:640px){.logo .wm{font-size:21px}}
+.brand svg{height:24px;width:auto;display:block}
+@media (max-width:640px){.brand svg{height:20px}}
 </style>
 
 <header class="top">
   <div class="wrap">
-    <button class="logo" data-go="home" aria-label="ROOTS 홈"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 17.2h19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 17C15 12 15.4 9 16 5.8 16.6 9 17 12 16 17Z M13.6 17C12.3 13.6 10.8 12 8.8 10.6 11.6 11.4 13.6 13.4 14.5 17Z M18.4 17C19.7 13.6 21.2 12 23.2 10.6 20.4 11.4 18.4 13.4 17.5 17Z" fill="var(--card)"/><path d="M16 17.5V25.5M16 19.6 12.6 23.4M16 19.6 19.4 23.4M16 22.4 14 25" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg><span class="wm">ROOTS</span><small>생활축구 공식 리그 커뮤니티</small></button>
+    <button class="logo" data-go="home" aria-label="ROOTS 홈"><span class="brand" id="brand"></span><small>생활축구 공식 리그 커뮤니티</small></button>
     <label class="regsel" for="home-region"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></svg><span class="sr">내 지역</span><select id="home-region"></select></label>
     <div class="who">
       <label for="who-sel">데모 계정</label>
@@ -853,6 +853,20 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; cle
 const TIER = r=> r===1?1 : r<=3?2 : r<=6?3 : 4;
 const dot = t=>`<span class="dot" style="background:${t.color}"></span>`;
 const dv = d=>`<span class="dv dv-${d}">${d}</span>`;
+/* 로고: 높이가 다른 잎 세 개(K7→K6→K5, 맨 위 금색) + ROOTS 글자 윤곽선 (Inter Display Black에서 추출) */
+const LOGO={"cap":1490,"bw":1490.0,"ww":7054,"gap":506.6,"blades":["M0.0,0 L357.6,0 C435.8,335.2 458.2,596.0 420.2,745.0 C239.1,536.4 55.9,260.8 0.0,0 Z","M432.1,0 L789.7,0 C908.6,509.6 989.1,905.9 968.5,1132.4 C758.4,815.3 517.0,396.3 432.1,0 Z","M864.2,0 L1221.8,0 C1378.2,670.5 1512.3,1192.0 1507.9,1490.0 C1271.0,1072.8 975.9,521.5 864.2,0 Z"],"word":[[0,"M80 0H496V466H682L905 0H1338L1065 556C1210 642 1292 785 1292 970C1292 1289 1069 1490 713 1490H80ZM496 788V1152H682C807 1152 886 1079 886 970C886 861 807 788 682 788Z"],[1335,"M764 -24C1169 -24 1488 247 1488 744C1488 1242 1169 1514 764 1514C357 1514 40 1242 40 744C40 250 357 -24 764 -24ZM764 336C569 336 460 487 460 744C460 1002 569 1154 764 1154C960 1154 1068 1002 1068 744C1068 487 960 336 764 336Z"],[2835,"M764 -24C1169 -24 1488 247 1488 744C1488 1242 1169 1514 764 1514C357 1514 40 1242 40 744C40 250 357 -24 764 -24ZM764 336C569 336 460 487 460 744C460 1002 569 1154 764 1154C960 1154 1068 1002 1068 744C1068 487 960 336 764 336Z"],[4335,"M40 1138H464V0H880V1138H1304V1490H40Z"],[5651,"M704 -24C1108 -24 1339 154 1339 466C1339 704 1194 836 852 899L732 921C577 949 510 987 510 1058C510 1133 592 1186 709 1186C833 1186 916 1122 926 1018H1308C1298 1330 1073 1514 701 1514C339 1514 92 1321 92 1038C92 817 248 664 536 609L684 581C852 549 928 507 928 435C928 357 840 304 709 304C558 304 463 375 457 496H64C64 161 291 -24 704 -24Z"]]};
+function logoSVG(word,c1,c2,gold,ink){
+  const W=LOGO.bw+(word?LOGO.gap+LOGO.ww:0), H=LOGO.cap;
+  const bl=LOGO.blades.map((d,i)=>`<path d="${d}" fill="${[c1,c2,gold][i]}"/>`).join("");
+  const wd=word?`<g transform="translate(${LOGO.bw+LOGO.gap},0)">${LOGO.word.map(([x,d])=>`<path transform="translate(${x},0)" d="${d}" fill="${ink}"/>`).join("")}</g>`:"";
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ROOTS"><g transform="translate(0,${H}) scale(1,-1)">${bl}${wd}</g></svg>`;
+}
+function drawLogo(g,x,y,h,c1,c2,gold,ink){
+  const k=h/LOGO.cap; g.save(); g.translate(x,y+h); g.scale(k,-k);
+  LOGO.blades.forEach((d,i)=>{ g.fillStyle=[c1,c2,gold][i]; g.fill(new Path2D(d)); });
+  g.translate(LOGO.bw+LOGO.gap,0); g.fillStyle=ink; LOGO.word.forEach(([dx,d])=>{ g.save(); g.translate(dx,0); g.fill(new Path2D(d)); g.restore(); });
+  g.restore(); return (LOGO.bw+LOGO.gap+LOGO.ww)*k;
+}
 const today=()=>new Date().toISOString().slice(0,10);
 const cheerBtn=(t,dark)=>{ const done=(t.cheerLog||{})[DB.me().id]===today();
   return `<button class="cheer ${dark?"dark":""} ${done?"done":""}" data-cheer="${t.id}" ${done?'aria-pressed="true"':""}>${done?"응원함":"응원하기"} <span class="num">${(t.cheers||0).toLocaleString("ko-KR")}</span></button>`; };
@@ -1153,7 +1167,7 @@ function matchView(){
 }
 /* 밴드·카톡용 순위 카드 이미지 (1080×1350) */
 async function shareCard(t){
-  try{ await Promise.all(['54px "Archivo Black"','72px "Black Han Sans"','40px "Noto Sans KR"','700 40px "Noto Sans KR"'].map(f=>document.fonts.load(f))); }catch(e){}
+  try{ await Promise.all(['72px "Black Han Sans"','40px "Noto Sans KR"','700 40px "Noto Sans KR"'].map(f=>document.fonts.load(f))); }catch(e){}
   const live=DB.liveSeason(), L=DB.league(t.leagueId), st=DB.standings(L.id,live.id), i=st.findIndex(x=>x.team.id===t.id), row=st[i];
   const f=DB.form(t.id,live.id), next=DB.s.matches.filter(m=>m.season===live.id&&m.status!=="final"&&(m.homeId===t.id||m.awayId===t.id)).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const W=1080,Hh=1350,c=document.createElement("canvas"); c.width=W; c.height=Hh; const g=c.getContext("2d");
@@ -1162,12 +1176,7 @@ async function shareCard(t){
   for(let x=0;x<W;x+=128){ g.fillStyle="rgba(255,255,255,.03)"; g.fillRect(x,0,64,Hh); }
   g.fillStyle=t.color; g.fillRect(0,0,W,16);
   // 로고
-  g.save(); g.translate(62,76); g.scale(2.3,2.3); g.strokeStyle="#fff"; g.lineCap="round";
-  g.lineWidth=2.4; g.beginPath(); g.arc(16,16,13.5,0,Math.PI*2); g.stroke();
-  g.lineWidth=1.8; g.stroke(new Path2D("M6.5 17.2h19"));
-  g.fillStyle="#f0b400"; g.fill(new Path2D("M16 17C15 12 15.4 9 16 5.8 16.6 9 17 12 16 17Z M13.6 17C12.3 13.6 10.8 12 8.8 10.6 11.6 11.4 13.6 13.4 14.5 17Z M18.4 17C19.7 13.6 21.2 12 23.2 10.6 20.4 11.4 18.4 13.4 17.5 17Z"));
-  g.lineWidth=1.4; g.stroke(new Path2D("M16 17.5V25.5M16 19.6 12.6 23.4M16 19.6 19.4 23.4M16 22.4 14 25")); g.restore();
-  g.fillStyle="#fff"; g.font=`54px "Archivo Black","Noto Sans KR",sans-serif`; g.textBaseline="middle"; g.fillText("ROOTS",150,114);
+  drawLogo(g,80,92,44,"rgba(255,255,255,.5)","rgba(255,255,255,.8)","#f0b400","#ffffff"); g.textBaseline="middle";
   g.fillStyle="#9db2a5"; g.font=`30px ${B}`; g.textAlign="right"; g.fillText(`${live.id} 시즌 · 협회 공식 기록`,W-80,112); g.textAlign="left";
   // 크레스트 + 팀명
   g.fillStyle=t.color; g.beginPath(); g.arc(170,340,96,0,Math.PI*2); g.fill();
@@ -1458,5 +1467,5 @@ document.addEventListener("change",async e=>{
 });
 $("#reset-btn").addEventListener("click",()=>{ DB.reset(); Object.assign(ui,{view:"home",region:DB.s.homeRegion,editTeam:null,draftImg:null}); render(); toast("예시 데이터로 되돌렸습니다"); });
 
-DB.load(); ui.region=DB.s.homeRegion; render();
+DB.load(); ui.region=DB.s.homeRegion; $("#brand").innerHTML=logoSVG(true,"rgba(255,255,255,.55)","rgba(255,255,255,.82)","var(--gold)","#fff"); render();
 </script>

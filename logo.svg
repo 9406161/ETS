@@ -1,9 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ROOTS 로고">
-  <rect width="512" height="512" rx="112" fill="#1d6a44"/>
-  <g transform="translate(64 64) scale(12)" stroke-linecap="round">
-    <circle cx="16" cy="16" r="13.5" fill="none" stroke="#ffffff" stroke-width="2.4"/>
-    <path d="M6.5 17.2h19" stroke="#ffffff" stroke-width="1.8"/>
-    <path d="M16 17C15 12 15.4 9 16 5.8 16.6 9 17 12 16 17Z M13.6 17C12.3 13.6 10.8 12 8.8 10.6 11.6 11.4 13.6 13.4 14.5 17Z M18.4 17C19.7 13.6 21.2 12 23.2 10.6 20.4 11.4 18.4 13.4 17.5 17Z" fill="#f0b400"/>
-    <path d="M16 17.5V25.5M16 19.6 12.6 23.4M16 19.6 19.4 23.4M16 22.4 14 25" stroke="#ffffff" stroke-width="1.4" fill="none"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" >
+<rect width="512" height="512" rx="112" fill="#1d6a44"/>
+<g transform="translate(128.0,384.0) scale(0.1718,-0.1718)"><path d="M0.0,0 L357.6,0 C435.8,335.2 458.2,596.0 420.2,745.0 C239.1,536.4 55.9,260.8 0.0,0 Z" fill="rgba(255,255,255,.55)"/><path d="M432.1,0 L789.7,0 C908.6,509.6 989.1,905.9 968.5,1132.4 C758.4,815.3 517.0,396.3 432.1,0 Z" fill="rgba(255,255,255,.8)"/><path d="M864.2,0 L1221.8,0 C1378.2,670.5 1512.3,1192.0 1507.9,1490.0 C1271.0,1072.8 975.9,521.5 864.2,0 Z" fill="#f0b400"/></g></svg>
