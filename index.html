@@ -597,6 +597,12 @@ h2.sec.small{font-size:16px}
 .hot li.ad,.mrows li.ad,.board tr.ad td{background:var(--sunk)!important}
 .pvside{max-width:300px}
 @media (prefers-reduced-motion:reduce){.scard img{transition:none}}
+
+/* v9: 1위 = 목록 바로 위 한 칸 */
+.tb{height:84px}
+.pvside.wide{max-width:none}
+.stack > .tb{margin-bottom:-12px}
+@media (max-width:640px){.tb{height:76px}}
 </style>
 
 <header class="top">
@@ -1111,20 +1117,25 @@ function sideCard(t,label,size,force){
   return c.sponsor&&c.link&&!force?`<a class="scard ${size}" href="${esc(c.link)}" target="_blank" rel="noopener sponsored nofollow">${inner}</a>`
     :`<button class="scard ${size}" data-team="${t.id}" aria-label="${esc(t.name)} 팀 페이지">${inner}</button>`;
 }
+/* 1위 = 글 목록 바로 위 얇은 한 칸 (디시 "리스트 상단" 자리) */
+function topSlot(t,label,force){
+  const c=force||slotContent(t);
+  const inner=`${c.img?`<img src="${esc(c.img)}" alt="">`:""}<span class="tbk">${label.includes("우승")?`<b>K5</b><small>우승</small>`:`<b>1</b><small>위</small>`}</span><span class="tbt"><span>${esc(label)}</span><b>${esc(c.name)}</b>${c.sub?`<i>${esc(c.sub)}</i>`:""}</span>${c.sponsor?`<span class="spb2">스폰서</span>`:""}`;
+  return c.sponsor&&c.link&&!force?`<a class="tb" style="--tc:${t.color}" href="${esc(c.link)}" target="_blank" rel="noopener sponsored nofollow">${inner}</a>`
+    :`<button class="tb" style="--tc:${t.color}" data-team="${t.id}" aria-label="${esc(t.name)} 팀 페이지">${inner}</button>`;
+}
 function stageBox(hall){
   if(!hall||!hall.final.length) return "";
   const f=hall.final, T=x=>DB.team(x.teamId);
-  return `<div class="box sbox"><h3>${esc(hall.id)} 전국 무대 <button data-go="league">기준</button></h3>
-    ${sideCard(T(f[0]),`1위 · ${f[0].tag}`,"s1")}
+  return `<div class="box sbox"><h3>${esc(hall.id)} 전국 무대 2~10위 <button data-go="league">기준</button></h3>
     ${f.length>1?`<div class="s2row">${f.slice(1,3).map((x,i)=>sideCard(T(x),`${i+2}위`,"s2")).join("")}</div>`:""}
     ${f.length>3?`<ol class="plist s3">${f.slice(3).map((x,i)=>{ const t=T(x), c=slotContent(t), l=c.sponsor&&c.link;
       return `<li><span class="num">${i+4}</span>${l?`<a class="tlink" href="${esc(c.link)}" target="_blank" rel="noopener sponsored nofollow">${esc(c.name)}</a>`:`<button class="tlink" data-team="${t.id}">${dot(t)}${esc(t.name)}</button>`}<span class="hint">${c.sponsor?esc(t.name)+" 스폰서":esc(x.tag)}</span></li>`; }).join("")}</ol>`:""}</div>`;
 }
 function regionBox(hall,rid){
-  const rf=hall&&hall.regionFinal[rid]||[]; if(!rf.length) return "";
+  const rf=hall&&hall.regionFinal[rid]||[]; if(rf.length<2) return "";
   const T=x=>DB.team(x.teamId);
   return `<div class="box sbox"><h3>${esc(hall.id)} ${esc(DB.region(rid).name)} 우승팀</h3>
-    ${sideCard(T(rf[0]),rf[0].tag,"s1")}
     ${rf.length>1?`<div class="s2row">${rf.slice(1,3).map(x=>sideCard(T(x),x.tag,"s2")).join("")}</div>`:""}</div>`;
 }
 function miniStandings(rid,div){
@@ -1142,6 +1153,7 @@ function homeView(){
   if(ads[0]) items.splice(Math.min(3,items.length),0,houseLi(ads[0]));
   if(ads[1]) items.splice(Math.min(8,items.length),0,houseLi(ads[1]));
   return `<div class="cols"><section class="stack">
+      ${hall&&hall.final.length?topSlot(DB.team(hall.final[0].teamId),`${hall.id} 전국 1위 · ${hall.final[0].tag}`):""}
       <div><div class="lhead"><h2 class="sec">실시간 인기글</h2><span class="sub">각 지역 게시판에서 추천 ${BEST_UP}개를 넘은 글</span></div>
         <ul class="hot">${hot.length?items.join(""):`<li class="empty">아직 인기글이 없습니다</li>`}</ul></div>
       <div><div class="lhead"><h2 class="sec">${esc(r.name)}</h2><span class="sub">새 글</span>
@@ -1214,7 +1226,7 @@ function galleryView(){
     
     <div class="boardbar gtabs"><div class="seg">${tabs.map(([k,l])=>`<button data-gtab="${k}" aria-pressed="${ui.gtab===k}">${l}</button>`).join("")}</div>
       ${ui.gtab!=="league"?`<button class="btn pri" data-act="write">글쓰기</button>`:""}</div>
-    ${ui.gtab==="league"?body:`<div class="cols"><section class="stack" style="gap:0">${body}</section><aside class="side">
+    ${ui.gtab==="league"?body:`<div class="cols"><section class="stack" style="gap:0">${top[0]&&ui.page===1&&!ui.q?`<div style="margin-bottom:12px">${topSlot(DB.team(top[0].teamId),`${hall.id} ${r.name} ${top[0].tag}`)}</div>`:""}${body}</section><aside class="side">
       ${regionBox(hall,r.id)}
       <div class="box"><h3>${esc(r.name)} 순위 <button data-gtab="league">일정·전체</button></h3>
         <div class="seg mini3" style="margin-bottom:8px;width:max-content">${DIVS.map(d=>`<button data-hdiv="${d}" aria-pressed="${ui.hdiv===d}">${d}</button>`).join("")}</div>
@@ -1475,8 +1487,8 @@ function spaceView(){
   const img=ui.draftImg!==null?ui.draftImg:(mode==="sponsor"?sp.image:t.image);
   const force = mode==="sponsor"?{sponsor:true,img,name:sp.name||"스폰서 이름",sub:sp.slogan,link:""}:{sponsor:false,img,name:t.name,sub:t.slogan,link:""};
   const pv=[];
-  if(slots.national) pv.push(`<div class="hint">홈 오른쪽 순위 옆 · 전국 ${slots.national.rank}위${slots.national.rank===1?" 큰 카드":slots.national.rank<=3?" 중간 카드":" 목록 한 줄(스폰서 이름·링크)"}</div><div class="pvside">${sideCard(t,`${slots.national.rank}위 · ${slots.national.tag}`,slots.national.rank===1?"s1":"s2",force)}</div>`);
-  if(slots.region) pv.push(`<div class="hint">${esc(DB.region(t.regionId).name)} 게시판 오른쪽 순위 옆${slots.region.rank===1?" 큰 카드":" 중간 카드"}</div><div class="pvside">${sideCard(t,slots.region.tag,slots.region.rank===1?"s1":"s2",force)}</div>`);
+  if(slots.national) pv.push(`<div class="hint">${slots.national.rank===1?"홈 실시간 인기글 바로 위 한 칸":`홈 오른쪽 순위 옆 · 전국 ${slots.national.rank}위${slots.national.rank<=3?" 카드":" 목록 한 줄(스폰서 이름·링크)"}`}</div><div class="pvside${slots.national.rank===1?" wide":""}">${slots.national.rank===1?topSlot(t,`${hall.id} 전국 1위 · ${slots.national.tag}`,force):sideCard(t,`${slots.national.rank}위 · ${slots.national.tag}`,"s2",force)}</div>`);
+  if(slots.region) pv.push(`<div class="hint">${esc(DB.region(t.regionId).name)} 게시판 ${slots.region.rank===1?"글 목록 바로 위 한 칸":"오른쪽 순위 옆 카드"}</div><div class="pvside${slots.region.rank===1?" wide":""}">${slots.region.rank===1?topSlot(t,`${hall.id} ${DB.region(t.regionId).name} ${slots.region.tag}`,force):sideCard(t,slots.region.tag,"s2",force)}</div>`);
   const st = t.adMode==="sponsor"&&t.sponsor ? (t.sponsor.status==="approved"?`<span class="pill ok">게시 중</span>`:t.sponsor.status==="pending"?`<span class="pill wait">검수 대기</span>`:`<span class="pill no">반려${t.sponsor.note?" · "+esc(t.sponsor.note):""}</span>`) : "";
   return intro+(me.role==="admin"?modQueue():"")+`
   ${me.role==="admin"?`<div class="form" style="margin-bottom:12px"><label>수정할 팀<select id="edit-team">${DB.s.leagues.map(L=>`<optgroup label="${esc(L.name)}">${DB.s.teams.filter(x=>x.leagueId===L.id).map(x=>`<option value="${x.id}" ${x.id===tid?"selected":""}>${esc(x.name)}${x.adMode==="sponsor"?" · 스폰서":""}</option>`).join("")}</optgroup>`).join("")}</select></label></div>`:""}
@@ -1518,8 +1530,8 @@ function guideView(){
     <ol>
       <li>17개 시·도마다 <b>지역 게시판</b>(울산·부산·경남 등)이 있고, 그 안에 글 목록과 그 지역 K5·K6·K7 리그 순위·일정이 함께 있습니다.</li>
       <li>일정과 결과는 <b>협회 공식 기록</b>을 그대로 보여 줍니다. 누구도 고칠 수 없고, 라운드가 끝나면 지역 게시판에 요약 글이 자동으로 올라옵니다.</li>
-      <li>시즌이 끝나면 <b>전국 무대(홈 오른쪽, 순위 옆)</b> 10칸은 K5 정상 1팀, K6 정상 2팀, K7 승격 7팀이 받습니다. 등급이 다른 리그를 한 줄로 세우지 않습니다.</li>
-      <li>각 <b>지역 게시판 오른쪽</b> 순위 옆 칸은 그 시·도의 K5·K6·K7 우승팀이 받습니다.</li>
+      <li>시즌이 끝나면 <b>전국 무대</b> 10칸(1위는 홈 인기글 바로 위, 2~10위는 오른쪽 순위 옆)은 K5 정상 1팀, K6 정상 2팀, K7 승격 7팀이 받습니다. 등급이 다른 리그를 한 줄로 세우지 않습니다.</li>
+      <li>각 <b>지역 게시판</b>은 K5 우승팀이 글 목록 바로 위 한 칸, K6·K7 우승팀이 오른쪽 순위 옆 칸을 받습니다.</li>
       <li>공간을 누르면 그 팀 페이지로 갑니다. 팀은 사진·문구·소개·연락처를 직접 꾸미거나, 스폰서에게 광고 자리로 내줄 수 있습니다.</li>
       <li>글 목록 사이의 <b>광고</b> 한 줄은 ROOTS 운영 광고입니다. 성과로 받는 팀 공간과는 따로 운영합니다. 광고 문의는 운영자에게.</li>
       <li>홈 지역 게시판에서 추천 ${BEST_UP}개를 넘은 글은 홈 <b>인기글</b>로 올라갑니다.</li>
