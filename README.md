@@ -1,7 +1,7 @@
 # ROOTS 루츠 — 생활축구 공식 리그 커뮤니티 (시제품)
 
 > 이름: grassroots(풀뿌리·생활축구)에서 따온 ROOTS. 영어 "root for"(응원하다)의 뜻도 함께 담음. 지역 게시판은 "울산 더비"처럼 더비를 유지.
-> 저장소 이름은 ETS(2020년 원본)를 유지. `logo.svg`(앱 아이콘), `logo-wordmark-*.svg`(가로형) = 높이가 다른 잎 세 개. 풀이 자라는 모양이자 K7→K6→K5 승격 사다리, 맨 위(K5 정상)만 금색. 글자는 Inter Display Black 윤곽선
+> 저장소 이름은 ETS(2020년 원본)를 유지. 로고: 가로형 = ROOTS + 글자 아래 잔디 바닥(`logo-wordmark-*.svg`), 앱 아이콘 = 잔디 위 축구공(`logo*.svg`). 정리 페이지 `logo.html`. 대표색·공 색은 미정
 
 대한축구협회 생활축구 디비전(**K5·K6·K7**) 공식 리그를 시·도별 커뮤니티(더비)로 보여 주고, **시즌 성과에 따라 팀에게 사이트 공간을 주는** 서비스.
 
@@ -73,5 +73,5 @@
 ## 폴더
 
 - `index.html` — 시제품
-- `logo.svg`, `logo-wordmark-light.svg`, `logo-wordmark-green.svg` — 로고
+- `logo.svg`, `logo-icon-*.svg` — 앱 아이콘 / `logo-wordmark-*.svg` — 가로형 / `logo.html` — 로고 정리
 - `legacy/` — 2020년 Spring MVC + JSP + MySQL 원본 (참고용)
