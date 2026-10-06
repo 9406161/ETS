@@ -622,6 +622,22 @@ h2.sec.small{font-size:16px}
 .soonrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line)}
 .soonrow:last-child{border-bottom:0}
 .soonrow .hint{width:48px;flex:none}
+
+/* v12: 모바일은 팀 공간을 글 목록 중간 카드 한 줄로 */
+.mstage,.hot li.mstage,.mrows li.mstage{display:none}
+.scard.s3{aspect-ratio:1/1}
+.scard.s3 .sc-cap b{font-size:12px}.scard.s3 .sc-cap span{display:none}
+@media (max-width:900px){
+  .dsk{display:none}
+  .hot li.mstage,.mrows li.mstage{display:block;padding:12px 0 14px;background:var(--surface)}
+  .msh{display:flex;justify-content:space-between;align-items:baseline;padding:0 12px 8px;font-size:14px}
+  .msh .more{border:0;background:none;color:var(--muted);font-size:12px;padding:0}
+  .mscroll{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 12px;scrollbar-width:none}
+  .mscroll::-webkit-scrollbar{display:none}
+  .mscroll .scard{flex:none;scroll-snap-align:start}
+  .mscroll .scard.s2{width:62%}.mscroll .scard.s3{width:34%}
+  .mtwo{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
+}
 </style>
 
 <header class="top">
@@ -1178,6 +1194,18 @@ function topSlot(t,label,force){
   return c.sponsor&&c.link&&!force?`<a class="tb" style="--tc:${t.color}" href="${esc(c.link)}" target="_blank" rel="noopener sponsored nofollow">${inner}</a>`
     :`<button class="tb" style="--tc:${t.color}" data-team="${t.id}" aria-label="${esc(t.name)} 팀 페이지">${inner}</button>`;
 }
+/* 모바일 전용: 오른쪽 칸 대신 글 목록 중간에 끼는 카드 한 줄 */
+function mobileStage(hall){
+  if(!hall||hall.final.length<2) return "";
+  const f=hall.final, T=x=>DB.team(x.teamId);
+  return `<li class="mstage"><div class="msh"><b>${esc(hall.id)} 전국 무대</b><button class="more" data-go="league">기준</button></div>
+    <div class="mscroll">${f.slice(1,3).map((x,i)=>sideCard(T(x),`${i+2}위`,"s2")).join("")}${f.slice(3).map((x,i)=>sideCard(T(x),`${i+4}위`,"s3")).join("")}</div></li>`;
+}
+function mobileRegion(hall,rid){
+  const rf=hall&&hall.regionFinal[rid]||[]; if(rf.length<2) return "";
+  return `<li class="mstage"><div class="msh"><b>${esc(hall.id)} ${esc(DB.region(rid).name)} 우승팀</b></div>
+    <div class="mtwo">${rf.slice(1,3).map(x=>sideCard(DB.team(x.teamId),x.tag,"s2")).join("")}</div></li>`;
+}
 function stageBox(hall){
   if(!hall||!hall.final.length) return "";
   const f=hall.final, T=x=>DB.team(x.teamId);
@@ -1205,7 +1233,8 @@ function homeView(){
   const mine=myTeams();
   const ads=houseAds(r.id,2), items=hot.map((p,i)=>hotLi(p,i,true));
   if(ads[0]) items.splice(Math.min(3,items.length),0,houseLi(ads[0]));
-  if(ads[1]) items.splice(Math.min(8,items.length),0,houseLi(ads[1]));
+  if(items.length>7) items.splice(7,0,mobileStage(hall));
+  if(ads[1]) items.push(houseLi(ads[1]));
   return `<div class="cols"><section class="stack">
       ${hall&&hall.final.length?topSlot(DB.team(hall.final[0].teamId),`${hall.id} 전국 1위 · ${hall.final[0].tag}`):""}
       <div><div class="lhead"><h2 class="sec">실시간 인기글</h2><span class="sub">각 지역 게시판에서 추천 ${BEST_UP}개를 넘은 글</span></div>
@@ -1216,7 +1245,7 @@ function homeView(){
     </section>
     <aside class="side">
       ${mine.length?`<div class="tcards">${mine.map(teamCard).join("")}</div>`:""}
-      ${stageBox(hall)}
+      <div class="dsk">${stageBox(hall)}</div>
       ${r.open?`<div class="box"><h3>${esc(r.name)} 순위 <button data-region="${r.id}" data-gt="league">일정·전체</button></h3>
         <div class="seg mini3" style="margin-bottom:8px;width:max-content">${DIVS.map(d=>`<button data-hdiv="${d}" aria-pressed="${ui.hdiv===d}">${d}</button>`).join("")}</div>
         ${miniStandings(r.id,ui.hdiv)}</div>
@@ -1237,7 +1266,7 @@ function headPill(p){
 }
 function regionChips(cur){ return `<div class="chips">${DB.openRegions().map(r=>`<button class="chip" data-region="${r.id}" aria-pressed="${cur===r.id}">${esc(r.name)}</button>`).join("")}</div>`; }
 
-function postRows(list,ad){
+function postRows(list,ad,mcard){
   const per=15, pages=Math.max(1,Math.ceil(list.length/per)); ui.page=Math.min(ui.page,pages);
   const rows=list.slice((ui.page-1)*per,ui.page*per);
   const teamOf=p=>{ const u=DB.user(p.author); return u&&u.teamId?DB.team(u.teamId):null; };
@@ -1249,7 +1278,7 @@ function postRows(list,ad){
   const empty=ui.q?"검색 결과가 없습니다":"아직 글이 없습니다. 첫 글을 써 보세요.";
   return `<div class="board"><table><thead><tr><th>번호</th><th>제목</th><th>글쓴이</th><th>작성일</th><th>조회</th><th>추천</th></tr></thead>
       <tbody>${(h=>{ if(ad&&h.length) h.splice(Math.min(5,h.length),0,houseTr(ad)); return h.join(""); })(rows.map(tr))||`<tr><td colspan="6" class="empty">${empty}</td></tr>`}</tbody></table>
-      <ul class="mrows">${(h=>{ if(ad&&h.length) h.splice(Math.min(5,h.length),0,houseLi(ad)); return h.join(""); })(rows.map(li))||`<li class="empty">${empty}</li>`}</ul></div>
+      <ul class="mrows">${(h=>{ if(ad&&h.length) h.splice(Math.min(5,h.length),0,houseLi(ad)); if(mcard&&h.length>8) h.splice(9,0,mcard); return h.join(""); })(rows.map(li))||`<li class="empty">${empty}</li>`}</ul></div>
     <div class="pager">${Array.from({length:pages},(_,i)=>`<button class="num" data-page="${i+1}" ${ui.page===i+1?'aria-current="true"':""}>${i+1}</button>`).join("")}</div>
     <form class="search" id="search-form"><input type="text" id="q" placeholder="제목·내용·글쓴이" value="${esc(ui.q)}"><button class="btn">검색</button>${ui.q?`<button type="button" class="btn" data-act="clearq">검색 해제</button>`:""}</form>
     <button class="fab" data-act="write">${ICON.pen}글쓰기</button>`;
@@ -1293,7 +1322,7 @@ function galleryView(){
   if(ui.gtab==="league") body=regionLeague(r);
   else { let list=DB.s.posts.filter(p=>p.board===r.id); if(ui.gtab==="best") list=list.filter(p=>p.up>=BEST_UP);
     if(ui.q){ const q=ui.q.toLowerCase(); list=list.filter(p=>(p.title+" "+p.body+" "+p.author).toLowerCase().includes(q)); }
-    body=postRows(list.sort((a,b)=>b.id-a.id),ui.q?null:houseAds(r.id,1)[0]); }
+    body=postRows(list.sort((a,b)=>b.id-a.id),ui.q?null:houseAds(r.id,1)[0],ui.q||ui.page>1?"":mobileRegion(hall,r.id)); }
   return `<nav class="crumb" aria-label="위치"><button data-go="home">홈</button><span aria-hidden="true">›</span><button data-go="regions">지역 게시판</button><span aria-hidden="true">›</span><b>${esc(r.name)}</b></nav>
     <div class="sechead"><h2 class="sec">${esc(r.name)}</h2><span class="sub">${DB.leaguesIn(r.id).length}개 리그 · ${DB.teamsIn(r.id).length}팀${r.id!==DB.s.homeRegion?" · 다른 지역 둘러보는 중":""}${FEAT.host&&r.host?` · <span class="host">더비 지기 <b>${esc(r.host)}</b></span>`:""}</span>
       <div class="right"><button class="btn sm" data-go="regions">지역 목록</button></div></div>
@@ -1302,7 +1331,7 @@ function galleryView(){
     <div class="boardbar gtabs"><div class="seg">${tabs.map(([k,l])=>`<button data-gtab="${k}" aria-pressed="${ui.gtab===k}">${l}</button>`).join("")}</div>
       ${ui.gtab!=="league"?`<button class="btn pri" data-act="write">글쓰기</button>`:""}</div>
     ${ui.gtab==="league"?body:`<div class="cols"><section class="stack" style="gap:0">${top[0]&&ui.page===1&&!ui.q?`<div style="margin-bottom:12px">${topSlot(DB.team(top[0].teamId),`${hall.id} ${r.name} ${top[0].tag}`)}</div>`:""}${body}</section><aside class="side">
-      ${regionBox(hall,r.id)}
+      <div class="dsk">${regionBox(hall,r.id)}</div>
       <div class="box"><h3>${esc(r.name)} 순위 <button data-gtab="league">일정·전체</button></h3>
         <div class="seg mini3" style="margin-bottom:8px;width:max-content">${DIVS.map(d=>`<button data-hdiv="${d}" aria-pressed="${ui.hdiv===d}">${d}</button>`).join("")}</div>
         ${miniStandings(r.id,ui.hdiv)}</div></aside></div>`}`;
