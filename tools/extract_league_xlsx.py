@@ -11,6 +11,9 @@ def area_of(name,div):
     if m:
         t=m.group(1).replace("League","").replace("리그","").strip()
         if len(t)<=2: sub=t          # A·B·C 같은 조 이름만
+    if not sub and gu:
+        m=re.search(re.escape(gu)+r'\s*([A-C])(?![A-Za-z])',name)
+        if m: sub=m.group(1)        # "북구A 디비전"처럼 이름 안에 붙은 조
     return gu,sub
 def tname(full):
     n=re.sub(r'^'+rname,'',full).strip()

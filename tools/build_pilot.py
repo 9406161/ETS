@@ -2,7 +2,7 @@
 import json,sys
 src,out,*datas=sys.argv[1:]
 regs=[json.load(open(d,encoding="utf-8")) for d in datas]
-names={"ulsan":"울산","busan":"부산","gyeongnam":"경남"}
+names={"ulsan":"울산","busan":"부산","daegu":"대구","gyeongnam":"경남","gyeongbuk":"경북"}
 label="·".join(names.get(r["region"],r["region"]) for r in regs)
 P={"id":"pilot-"+"-".join(r["region"] for r in regs),"season":"2025","source":"2025 K5~K7 경기결과 (대한축구협회 JoinKFA 기록)","label":label,"regions":regs}
 s=open(src,encoding="utf-8").read()

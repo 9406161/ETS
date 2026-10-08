@@ -783,7 +783,7 @@ function seedPilot(){
   open.forEach((rid,ri)=>{
     const ms=matches.filter(m=>leagues.find(l=>l.id===m.leagueId).regionId===rid), maxR=Math.max(...ms.map(m=>m.round));
     const before=s.posts.length;
-    for(let r=1;r<=maxR;r++) roundSummary(s,rid,r,now-(maxR-r+1)*7*24*H-ri*H);
+    for(let r=1;r<=maxR;r++){ const last=ms.filter(m=>m.round===r).map(m=>m.date).sort().pop(); roundSummary(s,rid,r,new Date(last+"T21:00:00+09:00").getTime()+ri*60e3); }
     s.posts.slice(before).forEach(p=>{ p.views=Math.round(80+R()*200); p.up=Math.round(6+R()*16); });
     const venues=[...new Set(ms.map(m=>m.venue))], forf=ms.filter(m=>m.note).length, o=ri*3*H;
     Pp(rid,"공지",`${rn(rid)} 게시판 이용 안내 (시범 운영)`,`1. 순위·결과는 협회 공식 기록을 그대로 보여 줍니다\n2. 라운드마다 요약 글이 자동으로 올라옵니다\n3. 전국 무대: K5 정상 1 · K6 정상 2 · K7 승격 7\n4. ${rn(rid)} 게시판 상단: K5·K6·K7 우승팀\n5. 시범 운영 중이라 일반 글은 예시입니다`,"ET",3*24*H+o,320,25,[["눈팅러","정리 감사"]]);

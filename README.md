@@ -76,10 +76,10 @@
 
 ## 울산 시범판 (실제 기록)
 
-- `pilot.html` — 2025 울산·부산 K5·K6·K7 실제 경기 결과(협회 기록 엑셀)로 만든 시범판. 울산 14개 리그 84팀 210경기, 부산 12개 리그 86팀 270경기
+- `pilot.html` — 2025 울산·부산·대구 K5·K6·K7 실제 경기 결과(협회 기록 엑셀)로 만든 시범판. 울산 14개 리그 84팀 210경기, 부산 12개 리그 86팀 270경기, 대구 8개 리그 51팀 138경기
 - 순위·우승·공간 배정·라운드 요약은 실제 결과로 자동 계산. 일반 글은 예시(실제 팀 이야기는 쓰지 않음)
 - 몰수·실격 경기 표시, 쌍방 몰수패는 두 팀 모두 패로 계산. 50대 중장년층리그는 K5~K7이 아니라 제외
-- 다시 만들기: `python3 tools/extract_league_xlsx.py 원본.xlsx ulsan 울산 "중구 남구 동구 북구 울주군" data/ulsan-2025.json` → `python3 tools/build_pilot.py index.html pilot.html data/ulsan-2025.json data/busan-2025.json`
+- 다시 만들기: `python3 tools/extract_league_xlsx.py 원본.xlsx ulsan 울산 "중구 남구 동구 북구 울주군" data/ulsan-2025.json` → `python3 tools/build_pilot.py index.html pilot.html data/ulsan-2025.json data/busan-2025.json data/daegu-2025.json`
 
 ## 폴더
 
