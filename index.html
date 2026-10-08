@@ -676,7 +676,7 @@ const RULE = {
   regionCap:2,              // 전국 무대에 한 시·도 최대 팀 수
   regionPrize:3             // 지역 게시판 상단 칸 수
 };
-if(PILOT) RULE.regionCap=99;   // 시범판은 한 지역뿐이라 제한 없음
+if(PILOT) RULE.regionCap=Math.max(2,Math.ceil(10/PILOT.regions.length));   // 시범판: 열린 지역 수에 맞춰 나눔
 const DIVS = ["K5","K6","K7"];
 /* 핵심만 먼저: 아래 기능은 코드는 두고 화면에서만 숨김 (true로 바꾸면 다시 보임) */
 const FEAT = {predict:false, bigMatch:false, host:false, share:false, follow:false, downvote:false, movement:false, autoEach:false};
@@ -758,37 +758,41 @@ const ROUND_DATES = ["2026-04-19","2026-05-17","2026-06-14","2026-07-12","2026-0
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 
 function seedPilot(){
-  const P=PILOT, now=Date.now(), H=36e5, rid=P.region, R=rng(2025);
-  const regions=REGIONS.map(([id,name,,d])=>({id,name,open:id===rid,districts:d.split(" "),host:""}));
-  const rn=regions.find(r=>r.id===rid).name;
-  const leagues=P.leagues.map(l=>({id:l.id,regionId:rid,div:l.div,area:l.area,name:`${rn} ${l.div}${l.area?" "+l.area:""}`}));
-  let n=0; const tid={};
-  const teams=P.teams.map(t=>{ const id="t"+(++n); tid[t.key]=id;
-    return {id,name:t.name,official:t.official,short:t.name.replace(/\(.*\)|FC|\s/g,"").slice(0,2)||t.name.slice(0,2),color:COLORS[n%COLORS.length],regionId:rid,leagueId:t.leagueId,str:0,
-      slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*24*H,adMode:"team",sponsor:null,reports:[],hidden:false,cheers:0,cheerLog:{}}; });
-  let mn=0;
-  const matches=P.matches.map(m=>({id:"g"+(++mn),season:P.season,leagueId:m.leagueId,round:m.round,date:m.date,time:m.time,venue:m.venue,homeId:tid[m.home],awayId:tid[m.away],hs:m.hs,as:m.as,status:"final",note:m.note||"",dbl:!!m.dbl}));
+  const P=PILOT, now=Date.now(), H=36e5, R=rng(2025), open=P.regions.map(x=>x.region);
+  const regions=REGIONS.map(([id,name,,d])=>({id,name,open:open.includes(id),districts:d.split(" "),host:""}));
+  const rn=id=>regions.find(r=>r.id===id).name;
+  const leagues=[], teams=[], matches=[], tid={}; let n=0, mn=0;
+  P.regions.forEach(G=>{
+    G.leagues.forEach(l=>leagues.push({id:l.id,regionId:G.region,div:l.div,area:l.area,name:`${rn(G.region)} ${l.div}${l.area?" "+l.area:""}`}));
+    G.teams.forEach(t=>{ const id="t"+(++n); tid[t.key]=id;
+      teams.push({id,name:t.name,official:t.official,short:t.name.replace(/\(.*\)|FC|fc|\s/g,"").slice(0,2)||t.name.slice(0,2),color:COLORS[n%COLORS.length],regionId:G.region,leagueId:t.leagueId,str:0,
+        slogan:"",link:"",recruiting:false,intro:"",contact:"",image:"",updatedAt:now-30*24*H,adMode:"team",sponsor:null,reports:[],hidden:false,cheers:0,cheerLog:{}}); });
+    G.matches.forEach(m=>matches.push({id:"g"+(++mn),season:P.season,leagueId:m.leagueId,round:m.round,date:m.date,time:m.time,venue:m.venue,homeId:tid[m.home],awayId:tid[m.away],hs:m.hs,as:m.as,status:"final",note:m.note||"",dbl:!!m.dbl}));
+  });
   const users=[{id:"u0",name:"ET",role:"admin",teamId:null},{id:"m1",name:"눈팅러",role:"member",teamId:null}];
-  const s={v:16,ads:HOUSE_ADS.map(a=>({...a})),modLog:[],follows:{m1:[]},homeRegion:rid,recent:[rid],me:"u0",nextPostId:1,regions,leagues,teams,matches,
+  const s={v:16,ads:HOUSE_ADS.map(a=>({...a})),modLog:[],follows:{m1:[]},homeRegion:open[0],recent:open.slice(),me:"u0",nextPostId:1,regions,leagues,teams,matches,
     seasons:[{id:P.season,status:"live",endedAt:now,final:null,regionFinal:null}],honors:[],users,posts:[]};
-  // 실제 기록으로 시즌 배정 계산 (아직 마감 확정 전 = 예상)
+  // 실제 기록으로 시즌 배정 계산 (마감 확정 전 = 현재 결과 기준)
   const keep=DB.s; DB.s=s;
-  const se=s.seasons[0]; se.final=DB.stageAllocation(P.season); se.regionFinal={[rid]:DB.regionAllocation(P.season,rid)};
-  // 주장 계정 예시: 배정 1~3위 팀
+  const se=s.seasons[0]; se.final=DB.stageAllocation(P.season); se.regionFinal={};
+  open.forEach(id=>se.regionFinal[id]=DB.regionAllocation(P.season,id));
   se.final.slice(0,3).forEach((x,i)=>{ const t=DB.team(x.teamId); users.push({id:"c"+i,name:t.short+"주장",role:"captain",teamId:t.id}); });
   DB.s=keep;
-  // 글: 운영 공지 + 라운드 요약(실제 기록) + 예시 일반 글(실제 팀 이야기는 쓰지 않음)
-  const Pp=(head,title,body,author,ago,views,up,cm)=>s.posts.push({id:s.nextPostId++,board:rid,head,title,body,author,createdAt:now-ago,views,up,down:0,voters:[],comments:(cm||[]).map(([a,t],i)=>({author:a,body:t,at:now-ago+(i+1)*H})),matchId:null});
-  const maxR=Math.max(...matches.map(m=>m.round));
-  for(let r=1;r<=maxR;r++) roundSummary(s,rid,r,now-(maxR-r+1)*7*24*H);
-  s.posts.forEach(p=>{ p.views=Math.round(80+R()*200); p.up=Math.round(6+R()*16); });
-  const venues=[...new Set(matches.map(m=>m.venue))];
-  Pp("공지",`${rn} 게시판 이용 안내 (시범 운영)`,`1. 순위·결과는 협회 공식 기록(${P.source})을 그대로 보여 줍니다\n2. 라운드마다 요약 글이 자동으로 올라옵니다\n3. ${P.stage}: K5 정상 1 · K6 정상 2 · K7 승격 7\n4. ${rn} 게시판 상단: K5·K6·K7 우승팀\n5. 시범 운영 중이라 일반 글은 예시입니다`,"ET",3*24*H,320,25,[["눈팅러","정리 감사"]]);
-  Pp("질문",`${venues[0]} 주차 어디가 편함?`,"처음 가 봐서요","풋린이",20*H,64,3,[["조기축구10년차","정문 쪽보다 뒤쪽이 편해요"],["풋린이","감사합니다"]]);
-  Pp("연습경기","[남구] 토요일 아침 7시 연습경기 한 팀 구합니다","구장 확보 완료. 심판비 반반","주말전사",6*H,41,1,[["막내공격수","쪽지 드림"]]);
-  Pp("","올해 몰수패가 생각보다 많네","인원 못 맞춰서 몰수 나는 경기가 꽤 됨. 용병 구하는 칸 있으면 좋겠다","수비형미드",30*H,210,19,[["골키퍼구함","ㄹㅇ 용병 칸 필요함"],["눈팅러","공감"],["주말전사","새벽 경기는 진짜 인원 맞추기 힘듦"]]);
-  Pp("질문","K7 처음인데 선수 등록 언제까지임?","팀 만든 지 반년 됨","신정막내",26*H,64,4,[["ET","이용안내에 정리해 둘게요"]]);
-  Pp("",`${venues[1]||venues[0]} 잔디 상태 어떰?`,"다음 주에 거기서 경기","왼발잡이",2*24*H,98,11,[["직관러","괜찮음"],["수비형미드","비 오면 좀 미끄러움"]]);
+  // 글: 라운드 요약(실제 기록) + 지역 공지 + 예시 일반 글(실제 팀 이야기는 쓰지 않음)
+  const Pp=(rid,head,title,body,author,ago,views,up,cm)=>s.posts.push({id:s.nextPostId++,board:rid,head,title,body,author,createdAt:now-ago,views,up,down:0,voters:[],comments:(cm||[]).map(([a,t],i)=>({author:a,body:t,at:now-ago+(i+1)*H})),matchId:null});
+  open.forEach((rid,ri)=>{
+    const ms=matches.filter(m=>leagues.find(l=>l.id===m.leagueId).regionId===rid), maxR=Math.max(...ms.map(m=>m.round));
+    const before=s.posts.length;
+    for(let r=1;r<=maxR;r++) roundSummary(s,rid,r,now-(maxR-r+1)*7*24*H-ri*H);
+    s.posts.slice(before).forEach(p=>{ p.views=Math.round(80+R()*200); p.up=Math.round(6+R()*16); });
+    const venues=[...new Set(ms.map(m=>m.venue))], forf=ms.filter(m=>m.note).length, o=ri*3*H;
+    Pp(rid,"공지",`${rn(rid)} 게시판 이용 안내 (시범 운영)`,`1. 순위·결과는 협회 공식 기록을 그대로 보여 줍니다\n2. 라운드마다 요약 글이 자동으로 올라옵니다\n3. 전국 무대: K5 정상 1 · K6 정상 2 · K7 승격 7\n4. ${rn(rid)} 게시판 상단: K5·K6·K7 우승팀\n5. 시범 운영 중이라 일반 글은 예시입니다`,"ET",3*24*H+o,320,25,[["눈팅러","정리 감사"]]);
+    Pp(rid,"질문",`${venues[0]} 주차 어디가 편함?`,"처음 가 봐서요","풋린이",20*H+o,64,3,[["조기축구10년차","정문 쪽보다 뒤쪽이 편해요"],["풋린이","감사합니다"]]);
+    Pp(rid,"연습경기","토요일 아침 7시 연습경기 한 팀 구합니다","구장 확보 완료. 심판비 반반","주말전사",6*H+o,41,1,[["막내공격수","쪽지 드림"]]);
+    Pp(rid,"",`올해 ${rn(rid)} 몰수 경기가 ${forf}경기나 됨`,`${ms.length}경기 중 ${forf}경기. 인원 못 맞춰서 몰수 나는 경기가 꽤 됨. 용병 구하는 칸 있으면 좋겠다`,"수비형미드",30*H+o,210,19,[["골키퍼구함","ㄹㅇ 용병 칸 필요함"],["눈팅러","공감"],["주말전사","새벽 경기는 진짜 인원 맞추기 힘듦"]]);
+    Pp(rid,"질문","K7 처음인데 선수 등록 언제까지임?","팀 만든 지 반년 됨","신입공격수",26*H+o,64,4,[["ET","이용안내에 정리해 둘게요"]]);
+    Pp(rid,"",`${venues[1]||venues[0]} 잔디 상태 어떰?`,"다음 주에 거기서 경기","왼발잡이",2*24*H+o,98,11,[["직관러","괜찮음"],["수비형미드","비 오면 좀 미끄러움"]]);
+  });
   return s;
 }
 function seed(){

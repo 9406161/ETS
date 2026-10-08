@@ -1,12 +1,13 @@
+"""시범판 만들기: python3 build_pilot.py index.html 출력.html 지역1.json [지역2.json ...]"""
 import json,sys
-src,data,out=sys.argv[1:4]
-s=open(src,encoding="utf-8").read(); d=json.load(open(data,encoding="utf-8"))
-st=d["stage"]
-for a,b in [("전국 무대",st),("전국 1위",st+" 1위"),("전국 ${slots.national.rank}위",st+" ${slots.national.rank}위"),
-            ("ROOTS 시제품 · 데이터는 이 브라우저에만 저장됩니다",f"ROOTS 울산 시범판 · 경기 기록: {d['source']} · 글은 예시"),
-            ("<title>","<title>")]:
-    s=s.replace(a,b)
-inj="<script>window.ROOTS_PILOT="+json.dumps(d,ensure_ascii=False).replace("</","<\\/")+";</script>\n<script>"
-assert s.count("<script>\n\"use strict\";")==1
-s=s.replace("<script>\n\"use strict\";",inj+"\n\"use strict\";",1)
-open(out,"w",encoding="utf-8").write(s); print("ok",len(s))
+src,out,*datas=sys.argv[1:]
+regs=[json.load(open(d,encoding="utf-8")) for d in datas]
+names={"ulsan":"울산","busan":"부산","gyeongnam":"경남"}
+label="·".join(names.get(r["region"],r["region"]) for r in regs)
+P={"id":"pilot-"+"-".join(r["region"] for r in regs),"season":"2025","source":"2025 K5~K7 경기결과 (대한축구협회 JoinKFA 기록)","label":label,"regions":regs}
+s=open(src,encoding="utf-8").read()
+s=s.replace("ROOTS 시제품 · 데이터는 이 브라우저에만 저장됩니다",f"ROOTS 시범판 ({label}) · 경기 기록: {P['source']} · 일반 글은 예시")
+s=s.replace("<title>ROOTS 루츠</title>",f"<title>ROOTS 시범판 {label}</title>",1)
+anchor="<script>\n\"use strict\";"; assert s.count(anchor)==1
+s=s.replace(anchor,"<script>window.ROOTS_PILOT="+json.dumps(P,ensure_ascii=False).replace("</","<\\/")+";</script>\n"+anchor,1)
+open(out,"w",encoding="utf-8").write(s); print("ok",label,len(s))
